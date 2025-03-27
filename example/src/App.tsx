@@ -1,12 +1,12 @@
-import { multiply } from '@kanmon/react-native-sdk';
+// import { multiply } from '@kanmon/react-native-sdk';
 import { Text, View, StyleSheet } from 'react-native';
 import { useState, useEffect } from 'react';
 
 export default function App() {
-  const [result, setResult] = useState<number | undefined>();
+  const [result, setResult] = useState<number | undefined>(0);
 
   useEffect(() => {
-    multiply(3, 7).then(setResult);
+    // multiply(3, 7).then(setResult);
   }, []);
 
   return (
