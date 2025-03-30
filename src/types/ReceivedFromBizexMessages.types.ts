@@ -1,5 +1,5 @@
 import {
-  Section,
+  type Section,
   ExternalDrawRequestDTO,
   ExternalInvoiceDTO,
 } from './General.types';

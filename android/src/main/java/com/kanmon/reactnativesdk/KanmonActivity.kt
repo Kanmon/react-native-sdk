@@ -3,6 +3,7 @@ import android.Manifest
 import android.app.Dialog
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Bundle
 import android.os.Message
 import android.util.Log
 import android.view.ViewGroup
@@ -23,6 +24,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 class KanmonActivity : ReactActivity() {
+
   companion object {
       private const val CAMERA_PERMISSION_REQUEST_CODE = 1001
   }
@@ -69,7 +71,6 @@ class KanmonActivity : ReactActivity() {
           return@runOnUiThread
         }
 
-        // TODO: VALIDATE show args
         sendMessageToWebView(showArgs)
 
         // Create dialog if it doesn't exist
@@ -122,7 +123,6 @@ class KanmonActivity : ReactActivity() {
 
     }
   }
-
   private fun sendMessageToWebView(eventData: String) {
     // todo: event queueing if not loaded yet
 
@@ -153,6 +153,7 @@ class KanmonActivity : ReactActivity() {
   }
 
   fun initializeWebView(reactContext: ReactContext, url: String): WebView {
+    println("starting web view")
     synchronized(webViewLock) {
       // Remove the existing WebView if it exists
       webView?.let {

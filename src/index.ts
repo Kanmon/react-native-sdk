@@ -252,6 +252,8 @@ const nativeSdk = {
       productSubsetDuringOnboarding: params.productSubsetDuringOnboarding,
     });
 
+    console.log('starting kanmon', url);
+
     KanmonModule.start(url);
 
     subscription?.remove();

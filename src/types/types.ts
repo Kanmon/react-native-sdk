@@ -1,5 +1,5 @@
-import {ErrorType} from './ReceivedFromBizexMessages.types';
-import {OnEventCallbackEvent} from './OnEventCallbackEvent.types';
+import { ErrorType } from './ReceivedFromBizexMessages.types';
+import type { OnEventCallbackEvent } from './OnEventCallbackEvent.types';
 
 export enum KanmonConnectComponent {
   SUMMARY = 'SUMMARY',
