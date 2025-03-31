@@ -115,6 +115,9 @@ function App(): React.JSX.Element {
         },
       });
     } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.log('got axios error', error.message);
+      }
       console.log('error', error);
     }
   };

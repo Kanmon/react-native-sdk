@@ -30,7 +30,7 @@ class WebViewDialogFragment(private val reactContext: ReactContext) : DialogFrag
     var webViewLock = Any()
     private var webView: WebView? = null
 
-    private var dialog: Dialog? = null
+//    private var dialog: Dialog? = null
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     // I considered synchronizing this list, but could not think
     // of a race condition where it would be needed.
@@ -46,6 +46,11 @@ class WebViewDialogFragment(private val reactContext: ReactContext) : DialogFrag
         }
         filePathCallback = null
     }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    println("WEBVIEW DIALOG ON DESTROY CALLED")
+  }
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -482,7 +487,7 @@ class WebViewDialogFragment(private val reactContext: ReactContext) : DialogFrag
                         val action = jsonObject.getString("action")
 
                         when (action) {
-                            "HIDE" -> dismiss()
+                            "HIDE" -> dialog?.hide()
                             "MESSAGING_READY" -> {
                                 isWebViewLoaded = true
                                 // Process any queued messages

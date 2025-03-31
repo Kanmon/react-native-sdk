@@ -1,7 +1,6 @@
 package com.kanmon.reactnativesdk
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -30,13 +29,13 @@ class KanmonModule(private val reactContext: ReactApplicationContext) : ReactCon
     if (webViewDialogFragment == null) {
       webViewDialogFragment = WebViewDialogFragment(reactContext).apply {
         arguments = Bundle().apply { putString("url", url) }
+
       }
     }
 
     activity.runOnUiThread{
       webViewDialogFragment?.initializeWebView(reactContext, url)
     }
-
 
 //    activity.runOnUiThread{
 //      activity.supportFragmentManager.beginTransaction().add(webViewDialogFragment!!, "WebViewDialog").commitNow()
@@ -62,7 +61,14 @@ class KanmonModule(private val reactContext: ReactApplicationContext) : ReactCon
 
     val fragmentManager = activity.supportFragmentManager
 
-    webViewDialogFragment?.show(fragmentManager, "WebViewDialog")
+    activity.runOnUiThread {
+      if (webViewDialogFragment?.dialog == null) {
+        webViewDialogFragment?.show(fragmentManager, "WebViewDialog")
+      } else {
+        webViewDialogFragment?.dialog?.show()
+      }
+    }
+
   }
 
   @ReactMethod
@@ -70,6 +76,5 @@ class KanmonModule(private val reactContext: ReactApplicationContext) : ReactCon
     val activity = (currentActivity as? KanmonActivity) ?: return
 
     activity.deleteWebView()
-
   }
 }
