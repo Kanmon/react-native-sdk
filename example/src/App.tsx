@@ -27,13 +27,13 @@ import {
   KanmonConnectEnviroment,
 } from '../../src/types/types';
 
-// const workflowHostName = 'http://10.0.2.2:3333';
-// const bizexHostName = 'http://10.0.2.2:4200';
-// const userId = '4fe6ed94-79f0-440f-9309-a659c4ffec94';
+const workflowHostName = 'http://10.0.2.2:3333';
+const bizexHostName = 'http://10.0.2.2:4200';
+const userId = '03c12e7b-bb2c-4177-98f0-3703216950a5';
 const platformBusinessId = 'cd4f61d4-6b39-457d-8fea-a5945661eebc';
 
-const workflowHostName = 'https://workflow.concar.dev';
-const userId = 'f1c23cbb-856c-4570-8c72-e176695a5864';
+// const workflowHostName = 'https://workflow.concar.dev';
+// const userId = 'f1c23cbb-856c-4570-8c72-e176695a5864';
 
 const userId2 = '74ed8bab-a0b3-4f95-8b78-e34401b9c3ac';
 
@@ -105,7 +105,7 @@ function App(): React.JSX.Element {
       );
 
       nativeSdk.start({
-        environment: 'staging' as KanmonConnectEnviroment,
+        environment: 'development' as KanmonConnectEnviroment,
         connectToken: res.data.connectToken,
         onEvent: (event: OnEventCallbackEvent) => {
           console.log('got event', event);

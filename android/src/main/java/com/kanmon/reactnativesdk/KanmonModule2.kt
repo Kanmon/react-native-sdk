@@ -1,13 +1,11 @@
 package com.kanmon.reactnativesdk
 
 import android.Manifest
-import android.R.attr.data
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Bundle
 import android.os.Message
 import android.util.Log
 import android.view.ViewGroup
@@ -28,8 +26,6 @@ import com.facebook.react.modules.core.PermissionListener
 class KanmonModule2(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext), ActivityEventListener, PermissionListener {
 
-  private var permissionPromise: Promise? = null
-
   override fun getName(): String {
     return "KanmonModule2"
   }
@@ -43,46 +39,40 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
   private var webView: WebView? = null
 
   private var dialog: Dialog? = null
-  private var filePathCallback: ValueCallback<Array<Uri>>? = null
+
   // I considered synchronizing this list, but could not think
   // of a race condition where it would be needed.
   private val messageQueue = mutableListOf<String>()
   private var isWebViewLoaded = false
+
+  private var filePathCallback: ValueCallback<Array<Uri>>? = null
   private val permissionCallbacks = mutableMapOf<Int, (Boolean) -> Unit>()
 
   init {
+    // This module extends ActivityEventListener so that we can implement
+    // onActivityResult below to handle file uploads.
     reactContext.addActivityEventListener(this);
   }
 
-//  private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-//    if (uri != null) {
-//      filePathCallback?.onReceiveValue(arrayOf(uri))
-//    } else {
-//      filePathCallback?.onReceiveValue(null)
-//    }
-//    filePathCallback = null
-//  }
-
-
+  // This handles file upload.
   override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, data: Intent?) {
-    println("got to onActivityResult")
-    val uri: Uri? = data?.data
+    if (requestCode == FILE_PICKER_REQUEST_CODE) {
+      val uri: Uri? = data?.data
 
-    if (uri != null) {
-      filePathCallback?.onReceiveValue(arrayOf(uri))
-    } else {
-      filePathCallback?.onReceiveValue(null)
+      if (uri != null) {
+        filePathCallback?.onReceiveValue(arrayOf(uri))
+      } else {
+        filePathCallback?.onReceiveValue(null)
+      }
+      filePathCallback = null
     }
-    filePathCallback = null
-
   }
 
   override fun onNewIntent(p0: Intent?) {
-    TODO("Not yet implemented")
+    // noop
   }
 
-  fun showModal(showArgs: String) {
-
+  private fun showModal(showArgs: String) {
     currentActivity?.runOnUiThread {
       synchronized(webViewLock) {
         if (webView == null) {
@@ -90,7 +80,7 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
           return@runOnUiThread
         }
 
-        // TODO: VALIDATE show args
+        println("showargs are $showArgs")
         sendMessageToWebView(showArgs)
 
         // Create dialog if it doesn't exist
@@ -140,13 +130,10 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
 
         dialog?.show()
       }
-
     }
   }
 
   private fun sendMessageToWebView(eventData: String) {
-    // todo: event queueing if not loaded yet
-
     if (!isWebViewLoaded) {
       messageQueue.add(eventData)
       return
@@ -158,6 +145,7 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
       // Create a JavaScript string that dispatches a custom event
       val escapedData = eventData.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
 
+      println("escaped $escapedData")
       val javascript = """
                 (function() {
                     try {
@@ -173,14 +161,14 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
     }
   }
 
-  fun initializeWebView(reactContext: ReactContext, url: String): WebView {
+  private fun initializeWebView(url: String): WebView {
     synchronized(webViewLock) {
       // Remove the existing WebView if it exists
       webView?.let {
         deleteWebView()
       }
 
-      webView = WebView(reactContext).apply {
+      webView = WebView(currentActivity!!).apply {
         settings.apply {
           javaScriptEnabled = true
           domStorageEnabled = true
@@ -193,8 +181,9 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
           mediaPlaybackRequiresUserGesture = false
         }
 
-        // This is needed for Persona selfies + gov ID.
+
         webChromeClient = object : WebChromeClient() {
+          // This is needed for Persona.
           override fun onPermissionRequest(request: PermissionRequest) {
             Log.d("KanmonActivity", "Permission request received: ${request.resources.joinToString()}")
 
@@ -217,11 +206,6 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
                 }
 
                 try {
-//                  ActivityCompat.requestPermissions(
-//                    currentActivity!!,
-//                    arrayOf(Manifest.permission.CAMERA),
-//                    CAMERA_PERMISSION_REQUEST_CODE
-//                  )
                   val activity = currentActivity as? PermissionAwareActivity ?: run {
                     return
                   }
@@ -253,7 +237,6 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
             this@KanmonModule2.filePathCallback = filePathCallback
 
             try {
-//              getContent.launch("*/*")
               val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "*/*"
                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -276,7 +259,7 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
             isUserGesture: Boolean,
             resultMsg: Message?
           ): Boolean {
-            val newWebView = WebView(reactContext).apply {
+            val newWebView = WebView(currentActivity!!).apply {
               settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
@@ -311,13 +294,11 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
           }
         }
 
-        // TODO - undo this
-        WebView.setWebContentsDebuggingEnabled(true)
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
 
-        // This adds a field called "ReactNative" to the window object.
+        // This adds a field called "ReactNative" to the window object in the WebView.
         addJavascriptInterface(WebViewJSInterface(reactContext) {
             message ->
-          // TODO: handle other events here other than hide
           try {
             val jsonObject = org.json.JSONObject(message)
             val action = jsonObject.getString("action")
@@ -350,13 +331,15 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
 
 
   override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
-    Log.d("KanmonActivity", "onRequestPermissionsResult called with requestCode: $requestCode")
+    Log.d("KanmonActivity", "onRequestPermissionsResult called with requestCode: $requestCode, ${grantResults}")
 
     val callback = permissionCallbacks.remove(requestCode)
+
     if (callback != null) {
       val granted = grantResults.isNotEmpty() &&
         grantResults[0] == PackageManager.PERMISSION_GRANTED
 
+      println("GRANTED IS ${grantResults.joinToString(",") }} granted $granted")
       currentActivity?.runOnUiThread {
         callback(granted)
       }
@@ -404,54 +387,23 @@ class KanmonModule2(private val reactContext: ReactApplicationContext) :
     Log.d("KanmonActivity", "Kanmon WebView stopped.")
   }
 
-
-
   @ReactMethod
   fun start(url: String) {
-//    val activity = currentActivity as? KanmonActivity ?: return
-//    activity.runOnUiThread {
-//      activity.initializeWebView(reactContext, url)
-//  }
-
-    println("calling start in module")
     val activity = currentActivity as? FragmentActivity ?: return
-    println("activity is $activity")
     activity.runOnUiThread{
-      initializeWebView(reactContext, url)
+      initializeWebView(url)
     }
-
-//    activity.runOnUiThread{
-//      activity.supportFragmentManager.beginTransaction().add(webViewDialogFragment!!, "WebViewDialog").commitNow()
-//    }
-
-
-//activity.runOnUiThread {
-//  webViewDialogFragment?.show(
-//    activity.supportFragmentManager,
-//    "WebViewDialog"
-//  )
-//}
-
-    println("built the web view dialog fragment.")
   }
 
   @ReactMethod
   fun show(showArgs: String) {
-//    val activity = (currentActivity as? KanmonActivity) ?: return
     showModal(showArgs)
   }
-//    val activity = currentActivity as? FragmentActivity ?: return
-//
-//    val fragmentManager = activity.supportFragmentManager
-//
-//    activity.runOnUiThread {
-//      if (webViewDialogFragment?.dialog == null) {
-//        webViewDialogFragment?.show(fragmentManager, "WebViewDialog")
-//      } else {
-//        webViewDialogFragment?.dialog?.show()
-//      }
-//    }
-//
-//  }
 
+  @ReactMethod
+  fun stop() {
+    val activity = (currentActivity as? KanmonActivity) ?: return
+
+    activity.deleteWebView()
+  }
 }

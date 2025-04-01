@@ -19,6 +19,10 @@ import {
   KanmonConnectEnviroment,
   type KanmonConnectParams,
 } from './types/types';
+import {
+  type SentToKanmonConnectMessage,
+  SentToKanmonConnectActions,
+} from './types/SentToKanmonConnectMessage.types';
 
 const validateParams = ({ connectToken }: KanmonConnectParams) => {
   if (!connectToken || typeof connectToken !== 'string') {
@@ -239,7 +243,7 @@ const nativeSdk = {
       [KanmonConnectEnviroment.production]: 'https://connect.kanmon.com',
       [KanmonConnectEnviroment.sandbox]: 'https://connect.kanmon.dev',
       staging: 'https://connect.concar.dev',
-      development: 'http://localhost:4200',
+      development: 'http://10.0.2.2:4200',
     };
 
     const baseUrl =
@@ -251,8 +255,6 @@ const nativeSdk = {
       customInitializationName: params.customInitializationName,
       productSubsetDuringOnboarding: params.productSubsetDuringOnboarding,
     });
-
-    console.log('starting kanmon', url);
 
     KanmonModule.start(url);
 
@@ -310,7 +312,13 @@ const nativeSdk = {
 
   show(showArgs: ShowArgs = {}) {
     validateShowArgs(showArgs);
-    KanmonModule.show(JSON.stringify(showArgs));
+
+    const args: SentToKanmonConnectMessage = {
+      action: SentToKanmonConnectActions.SHOW_KANMON_CONNECT,
+      ...showArgs,
+    };
+
+    KanmonModule.show(JSON.stringify(args));
   },
 
   stop() {
