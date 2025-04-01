@@ -1,6 +1,6 @@
 import { NativeModules, NativeEventEmitter } from 'react-native';
 
-const { KanmonModule } = NativeModules;
+const { KanmonModule2: KanmonModule } = NativeModules;
 
 interface KanmonModule {
   start(url: string): void;

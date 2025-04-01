@@ -1,12 +1,18 @@
 package com.kanmon.reactnativesdk
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
+import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.modules.core.PermissionListener
 
-class KanmonModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class KanmonModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext),
+  PermissionListener
+{
   override fun getName() = "KanmonModule"
 
   private var webViewDialogFragment: WebViewDialogFragment? = null
@@ -77,4 +83,15 @@ class KanmonModule(private val reactContext: ReactApplicationContext) : ReactCon
 
     activity.deleteWebView()
   }
+
+  override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<String>,
+    grantResults: IntArray
+  ): Boolean {
+    TODO("Not yet implemented")
+  }
+
+//  override fun onRequestPermissionsResult(activity: Activity?, requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+//
 }

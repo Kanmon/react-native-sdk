@@ -8,7 +8,7 @@ import com.facebook.react.uimanager.ViewManager
 
 class KanmonPackage : ReactPackage {
   override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-    return listOf(KanmonModule(reactContext))
+    return listOf(KanmonModule(reactContext), KanmonModule2(reactContext))
   }
 
   override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
