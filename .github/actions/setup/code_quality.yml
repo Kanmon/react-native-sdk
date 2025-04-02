@@ -1,0 +1,32 @@
+name: Test & Code Quality
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2
+      - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # 4.3.0
+        with:
+          node-version: 18.20.7
+      - name: Use npm 9.9.1
+        shell: bash
+        run: npm install -g npm@9.9.1
+      - name: Cache Node Modules
+        id: node-cache
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # 4.2.2
+        with:
+          path: |
+            node_modules
+            .cache
+          key: node-modulesc-${{ hashFiles('yarn.lock') }}
+      - name: Install dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: yarn install
+      - name: Typecheck
+        run: yarn typecheck
