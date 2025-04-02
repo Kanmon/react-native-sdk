@@ -8,13 +8,13 @@ class WebViewJSInterface(
     private val reactContext: ReactContext,
     private val onMessage: (message: String) -> Unit
 ) {
-    @JavascriptInterface
-    fun postMessage(message: String) {
-        onMessage(message)
+  @JavascriptInterface
+  fun postMessage(message: String) {
+    onMessage(message)
 
-        // Emit to React Native
-        reactContext
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit("onWebViewMessage", message)
-    }
+    // Emit to React Native
+    reactContext
+        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        .emit("onWebViewMessage", message)
+  }
 }
