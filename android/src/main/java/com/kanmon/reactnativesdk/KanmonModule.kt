@@ -312,7 +312,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                   }
                 }
 
-            WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
+//            WebView.setWebContentsDebuggingEnabled(true)
 
             // This adds a field called "ReactNative" to the window object in the WebView.
             addJavascriptInterface(
