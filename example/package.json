@@ -24,7 +24,9 @@
     "@react-native/babel-preset": "0.78.1",
     "@react-native/metro-config": "0.78.1",
     "@react-native/typescript-config": "0.78.1",
-    "react-native-builder-bob": "^0.38.0"
+    "babel-plugin-transform-inline-environment-variables": "^0.4.4",
+    "react-native-builder-bob": "^0.38.0",
+    "react-native-dotenv": "^3.4.11"
   },
   "engines": {
     "node": ">=18"

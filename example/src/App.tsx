@@ -24,12 +24,16 @@ import {
 const workflowHostName = 'https://workflow.concar.dev'
 
 // Sub in your test user IDs here
-const testUserId1 = 'f1c23cbb-856c-4570-8c72-e176695a5864'
+const testUserId1 = process.env.TEST_USER_ID_1
 // 2nd test user allows for switching between users.
-const testUserId2 = '74ed8bab-a0b3-4f95-8b78-e34401b9c3ac'
+const testUserId2 = process.env.TEST_USER_ID_2
 
 // For the sake of testing
-const apiKey = 'YOUR_API_KEY'
+const apiKey = process.env.KANMON_API_KEY
+
+console.log('api key', apiKey)
+console.log('test user id 1', testUserId1)
+console.log('test user id 2', testUserId2)
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark'
