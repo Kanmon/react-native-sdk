@@ -78,7 +78,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
   private fun showModal(showArgs: String) {
     synchronized(webViewLock) {
       if (webView == null) {
-        Log.w("KanmonActivity", "Kanmon must be initialized before show is called.")
+        Log.w(name, "Kanmon must be initialized before show is called.")
         return
       }
 
@@ -186,7 +186,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                   // This is needed for Persona.
                   override fun onPermissionRequest(request: PermissionRequest) {
                     Log.d(
-                        "KanmonActivity",
+                        "KanmonModule",
                         "Permission request received: ${request.resources.joinToString()}")
 
                     if (request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
@@ -194,11 +194,11 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                           reactContext, Manifest.permission.CAMERA) ==
                           PackageManager.PERMISSION_GRANTED) {
                         Log.d(
-                            "KanmonActivity",
+                            "KanmonModule",
                             "Camera permission already granted, allowing WebView access")
                         request.grant(request.resources)
                       } else {
-                        Log.d("KanmonActivity", "Requesting camera permission from user")
+                        Log.d("KanmonModule", "Requesting camera permission from user")
 
                         // Store callback with unique request code
                         permissionCallbacks[CAMERA_PERMISSION_REQUEST_CODE] = { granted ->
@@ -221,18 +221,16 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                               CAMERA_PERMISSION_REQUEST_CODE,
                               this@KanmonModule)
 
-                          Log.d("KanmonActivity", "Requested camera permission from system")
+                          Log.d("KanmonModule", "Requested camera permission from system")
                         } catch (e: Exception) {
                           Log.e(
-                              "KanmonActivity",
-                              "Error requesting camera permission: ${e.message}",
-                              e)
+                              "KanmonModule", "Error requesting camera permission: ${e.message}", e)
                           permissionCallbacks.remove(CAMERA_PERMISSION_REQUEST_CODE)
                           request.deny()
                         }
                       }
                     } else {
-                      Log.d("KanmonActivity", "Denying non-camera permission request")
+                      Log.d("KanmonModule", "Denying non-camera permission request")
                       request.deny()
                     }
                   }
@@ -254,7 +252,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                       currentActivity?.startActivityForResult(
                           Intent.createChooser(intent, "Select File"), FILE_PICKER_REQUEST_CODE)
                     } catch (e: Exception) {
-                      Log.e("KanmonActivity", "Error launching file chooser: ${e.message}", e)
+                      Log.e("KanmonModule", "Error launching file chooser: ${e.message}", e)
                       filePathCallback?.onReceiveValue(null)
                       return false
                     }
@@ -312,8 +310,6 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                   }
                 }
 
-            //            WebView.setWebContentsDebuggingEnabled(true)
-
             // This adds a field called "ReactNative" to the window object in the WebView.
             addJavascriptInterface(
                 WebViewJSInterface(reactContext) { message ->
@@ -321,6 +317,8 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                     val jsonObject = org.json.JSONObject(message)
                     val action = jsonObject.getString("action")
 
+                    // Note these events are handled on the React Native side. Just handling
+                    // these here because they have to do with things happening on the Android side.
                     when (action) {
                       "HIDE" -> dialog?.dismiss()
                       "MESSAGING_READY" -> {
@@ -333,7 +331,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                       }
                     }
                   } catch (e: Exception) {
-                    Log.e("KanmonActivity", "Failed to parse message as JSON: $message")
+                    Log.e("KanmonModule", "Failed to parse message as JSON: $message")
                   }
                 },
                 "ReactNative")
@@ -342,6 +340,8 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
       Log.d("Kanmon", "starting webview with $url")
       webView?.loadUrl(url)
     }
+
+    //                  WebView.setWebContentsDebuggingEnabled(true)
 
     return webView!!
   }
@@ -352,7 +352,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
       grantResults: IntArray
   ): Boolean {
     Log.d(
-        "KanmonActivity",
+        "KanmonModule",
         "onRequestPermissionsResult called with requestCode: $requestCode, ${grantResults}")
 
     val callback = permissionCallbacks.remove(requestCode)
@@ -364,15 +364,15 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
       currentActivity?.runOnUiThread { callback(granted) }
       return true
     } else {
-      Log.w("KanmonActivity", "Received permission result for unknown requestCode: $requestCode")
+      Log.w("KanmonModule", "Received permission result for unknown requestCode: $requestCode")
       return false
     }
   }
 
-  fun deleteWebView() {
+  private fun deleteWebView() {
     synchronized(webViewLock) {
       if (webView == null) {
-        Log.d("KanmonActivity", "Cannot stop Kanmon because it is not started.")
+        Log.d("KanmonModule", "Cannot stop Kanmon because it is not started.")
         return
       }
 
@@ -397,7 +397,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
       }
     }
 
-    Log.d("KanmonActivity", "Kanmon WebView stopped.")
+    Log.d("KanmonModule", "Kanmon WebView stopped.")
   }
 
   @ReactMethod

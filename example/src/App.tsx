@@ -24,16 +24,12 @@ import {
 const workflowHostName = 'https://workflow.concar.dev'
 
 // Sub in your test user IDs here
-const testUserId1 = process.env.TEST_USER_ID_1
+const testUserId1 = process.env.TEST_USER_ID_1 as string
 // 2nd test user allows for switching between users.
-const testUserId2 = process.env.TEST_USER_ID_2
+const testUserId2 = process.env.TEST_USER_ID_2 as string
 
-// For the sake of testing
+// For the sake of testing. Do not do this in production.
 const apiKey = process.env.KANMON_API_KEY
-
-console.log('api key', apiKey)
-console.log('test user id 1', testUserId1)
-console.log('test user id 2', testUserId2)
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark'
@@ -53,7 +49,7 @@ function App(): React.JSX.Element {
       )
 
       nativeSdk.start({
-        environment: 'staging' as KanmonConnectEnviroment,
+        environment: process.env.ENVIRONMENT as KanmonConnectEnviroment,
         connectToken: res.data.connectToken,
         onEvent: (event: OnEventCallbackEvent) => {
           console.log('got event', event)
