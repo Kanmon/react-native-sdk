@@ -12,7 +12,7 @@ class WebViewJSInterface(
   fun postMessage(message: String) {
     onMessage(message)
 
-    // Emit to React Native
+    // Emit message from native WebView to React Native
     reactContext
         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
         .emit("onWebViewMessage", message)

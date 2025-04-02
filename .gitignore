@@ -50,6 +50,8 @@ example/vendor/
 
 example/.env
 
+example/android/.kotlin/**
+
 # node.js
 #
 node_modules/
