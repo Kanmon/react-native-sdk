@@ -1,10 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React, { useEffect } from 'react'
 import {
   Button,
@@ -12,11 +5,12 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  Text,
   useColorScheme,
   View,
 } from 'react-native'
 
-import { Colors, Header } from 'react-native/Libraries/NewAppScreen'
+import { Colors } from 'react-native/Libraries/NewAppScreen'
 
 import axios from 'axios'
 import nativeSdk from '../../src/index'
@@ -34,6 +28,9 @@ const testUserId1 = 'f1c23cbb-856c-4570-8c72-e176695a5864'
 // 2nd test user allows for switching between users.
 const testUserId2 = '74ed8bab-a0b3-4f95-8b78-e34401b9c3ac'
 
+// For the sake of testing
+const apiKey = 'YOUR_API_KEY'
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark'
 
@@ -46,7 +43,7 @@ function App(): React.JSX.Element {
         },
         {
           headers: {
-            Authorization: 'ApiKey kanmon',
+            Authorization: `ApiKey ${apiKey}`,
           },
         },
       )
@@ -77,18 +74,6 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   }
 
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the reccomendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-
-  // this will be a public method on RN SDK
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -96,9 +81,6 @@ function App(): React.JSX.Element {
         backgroundColor={backgroundStyle.backgroundColor}
       />
       <ScrollView style={backgroundStyle}>
-        <View style={styles.headerContainer}>
-          <Header />
-        </View>
         <View
           style={[
             styles.contentContainer,
@@ -107,6 +89,9 @@ function App(): React.JSX.Element {
             },
           ]}
         >
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerText}>Kanmon SDK Example</Text>
+          </View>
           <View style={styles.buttonContainer}>
             <Button title="Open Kanmon" onPress={() => nativeSdk.show()} />
           </View>
@@ -148,7 +133,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerContainer: {
-    paddingRight: '5%',
+    padding: '5%',
+  },
+  headerText: {
+    fontSize: 24,
   },
   contentContainer: {
     paddingHorizontal: '5%',
