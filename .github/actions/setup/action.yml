@@ -1,36 +1,71 @@
-name: Setup
-description: Setup Node.js and install dependencies
+name: Publish Frontend Native SDK to NPM
 
-runs:
-  using: composite
-  steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version-file: .nvmrc
+# Using CI to publish the SDK:
+# 1. Update the package.json version to be accurate
+# 2. Merge that PR.
+# 3. In github, theres a "Releases" section. Create a new release with the name and a tag matching the version in the package.json file.
+# 4. Save it. This will trigger the CI to publish the SDK to NPM. (aka this job)
 
-    - name: Restore dependencies
-      id: yarn-cache
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          **/node_modules
-          .yarn/install-state.gz
-        key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}-${{ hashFiles('**/package.json', '!node_modules/**') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          ${{ runner.os }}-yarn-
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
 
-    - name: Install dependencies
-      if: steps.yarn-cache.outputs.cache-hit != 'true'
-      run: yarn install --immutable
-      shell: bash
+jobs:
+  publish-frontend-sdk:
+    name: Publish Frontend Native SDK to NPM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2
+        with:
+          fetch-depth: 0
 
-    - name: Cache dependencies
-      if: steps.yarn-cache.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
-      with:
-        path: |
-          **/node_modules
-          .yarn/install-state.gz
-        key: ${{ steps.yarn-cache.outputs.cache-primary-key }}
+      - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # 4.3.0
+        with:
+          node-version: 18.20.7
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Use npm 9.9.1
+        shell: bash
+        run: npm install -g npm@9.9.1
+
+      - name: Set Github tag
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Cache Node Modules
+        id: node-cache
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # 4.2.2
+        with:
+          path: |
+            node_modules
+            .cache
+          key: node-modulesc-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: yarn install
+
+      - name: Build App
+        run: yarn nx build web-sdk
+
+      - name: Publish (pre-release)
+        if: github.ref_type == 'branch'
+        run: |
+          git config user.name "${{ github.event.pusher.name }}"
+          git config user.email "${{ github.event.pusher.email }}"
+          cd dist/libs/web-sdk
+          yarn version --prerelease --preid next-${{ github.sha }} --no-git-tag-version
+          yarn publish --access public --tag next
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish
+        if: github.ref_type == 'tag'
+        run: yarn publish --access public dist/libs/web-sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
