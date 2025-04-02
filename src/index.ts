@@ -1,44 +1,44 @@
-import { type EmitterSubscription } from 'react-native';
-import KanmonModule, { WebViewEventEmitter } from './KanmonModule';
+import { type EmitterSubscription } from 'react-native'
+import KanmonModule, { WebViewEventEmitter } from './KanmonModule'
 import {
   type AllSteps,
   type Section,
   type WorkflowStep,
-} from './types/General.types';
+} from './types/General.types'
 import {
   OnEventCallbackEventType,
   type UserStateWithActionMessage,
-} from './types/OnEventCallbackEvent.types';
+} from './types/OnEventCallbackEvent.types'
 import {
   ReceivedFromKanmonActions,
   type ReceivedFromKanmonMessage,
-} from './types/ReceivedFromBizexMessages.types';
+} from './types/ReceivedFromBizexMessages.types'
 import {
   ExternalProductType,
   KanmonConnectComponent,
   KanmonConnectEnviroment,
   type KanmonConnectParams,
-} from './types/types';
+} from './types/types'
 import {
   type SentToKanmonConnectMessage,
   SentToKanmonConnectActions,
-} from './types/SentToKanmonConnectMessage.types';
+} from './types/SentToKanmonConnectMessage.types'
 
 const validateParams = ({ connectToken }: KanmonConnectParams) => {
   if (!connectToken || typeof connectToken !== 'string') {
-    throw new Error('connect token must be defined');
+    throw new Error('connect token must be defined')
   }
-};
+}
 
 const validateShowArgs = (showArgs: ShowArgs) => {
-  const { component, sessionToken } = showArgs;
-  const allComponents = Object.values(KanmonConnectComponent);
+  const { component, sessionToken } = showArgs
+  const allComponents = Object.values(KanmonConnectComponent)
   if (component && !allComponents.includes(component)) {
-    throw new Error(`Component ${component} must be one of ${allComponents}.`);
+    throw new Error(`Component ${component} must be one of ${allComponents}.`)
   }
 
   if (sessionToken && typeof sessionToken !== 'string') {
-    throw new Error(`sessionToken must be a string.`);
+    throw new Error(`sessionToken must be a string.`)
   }
 
   const componentsThatRequireSessionToken = [
@@ -46,20 +46,20 @@ const validateShowArgs = (showArgs: ShowArgs) => {
     KanmonConnectComponent.SESSION_INVOICE_FLOW_WITH_INVOICE_FILE,
     KanmonConnectComponent.SESSION_ACCOUNTS_PAYABLE_INVOICE_FLOW,
     KanmonConnectComponent.SESSION_ACCOUNTS_PAYABLE_INVOICE_FLOW_WITH_INVOICE_FILE,
-  ];
+  ]
 
   if (
     component &&
     componentsThatRequireSessionToken.includes(component) &&
     !sessionToken
   ) {
-    throw new Error(`sessionToken must be a string.`);
+    throw new Error(`sessionToken must be a string.`)
   }
-};
+}
 
 const stepToUserState = (
   step: AllSteps,
-  section: Section
+  section: Section,
 ): UserStateWithActionMessage => {
   switch (step) {
     case 'BLOCKED_ON_PRIMARY_OWNER':
@@ -68,21 +68,21 @@ const stepToUserState = (
         userState: 'OTHER_USER_INPUT_REQUIRED',
         actionRequired: false,
         section,
-      };
+      }
     case 'PRIMARY_OWNER_CONFLICT':
       return {
         actionMessage: 'In manual review',
         userState: 'IN_MANUAL_REVIEW',
         actionRequired: false,
         section,
-      };
+      }
     case 'ONBOARDING.START_FLOW':
       return {
         actionMessage: 'Need financing?',
         userState: 'START_FLOW',
         actionRequired: true,
         section,
-      };
+      }
     case 'SELECT_USER_ROLES':
     case 'ONBOARDING.SELECT_PRODUCTS':
     case 'ONBOARDING.COLLECT_PERSONAL_DETAILS':
@@ -101,7 +101,7 @@ const stepToUserState = (
         userState: 'USER_INPUT_REQUIRED',
         actionRequired: true,
         section,
-      };
+      }
     case 'OFFERS_PENDING':
     case 'WAITING_FOR_OFFERS':
       return {
@@ -109,49 +109,49 @@ const stepToUserState = (
         userState: 'WAITING_FOR_OFFERS',
         actionRequired: false,
         section,
-      };
+      }
     case 'LOAN_APPLICATION_INCOMPLETE':
       return {
         actionMessage: 'Loan application incomplete',
         userState: 'LOAN_APPLICATION_INCOMPLETE',
         actionRequired: false,
         section,
-      };
+      }
     case 'LOAN_APPLICATION_WITHDRAWN':
       return {
         actionMessage: 'Loan application withdrawn',
         userState: 'LOAN_APPLICATION_WITHDRAWN',
         actionRequired: false,
         section,
-      };
+      }
     case 'NO_OFFERS_EXTENDED':
       return {
         actionMessage: 'No offers',
         userState: 'NO_OFFERS_EXTENDED',
         actionRequired: false,
         section,
-      };
+      }
     case 'ONBOARDING_ERROR':
       return {
         actionMessage: 'Error',
         userState: 'IN_MANUAL_REVIEW',
         actionRequired: false,
         section,
-      };
+      }
     case 'REQUEST_ADDITIONAL_USER_INPUT':
       return {
         actionMessage: 'Action required',
         userState: 'USER_INPUT_REQUIRED',
         actionRequired: true,
         section,
-      };
+      }
     case 'DISPLAY_OFFERS':
       return {
         actionMessage: 'View your offers 🎉',
         userState: 'VIEW_OFFERS',
         actionRequired: true,
         section,
-      };
+      }
     case 'COLLECT_LEGAL_AGREEMENTS':
     case 'COLLECT_TAX_ID':
     case 'COLLECT_PERSONA':
@@ -162,7 +162,7 @@ const stepToUserState = (
         userState: 'USER_INPUT_REQUIRED',
         actionRequired: true,
         section,
-      };
+      }
     case 'OFFER_ACCEPTED':
     case 'ISSUED_PRODUCT_CREATED':
       return {
@@ -170,7 +170,7 @@ const stepToUserState = (
         userState: 'OFFER_ACCEPTED',
         actionRequired: false,
         section,
-      };
+      }
     case 'OFFER_REFRESH_PENDING':
     case 'OFFERS_EXPIRED':
       return {
@@ -178,7 +178,7 @@ const stepToUserState = (
         userState: 'OFFERS_EXPIRED',
         actionRequired: false,
         section,
-      };
+      }
     case 'INIT_SERVICING_FLOW':
     case 'READY_FOR_SERVICING':
       return {
@@ -186,9 +186,9 @@ const stepToUserState = (
         userState: 'SERVICING',
         actionRequired: true,
         section,
-      };
+      }
   }
-};
+}
 
 const buildUrl = ({
   connectToken,
@@ -196,135 +196,135 @@ const buildUrl = ({
   customInitializationName,
   productSubsetDuringOnboarding,
 }: {
-  connectToken: string;
-  baseUrl: string;
-  customInitializationName?: string;
-  productSubsetDuringOnboarding?: ExternalProductType[];
+  connectToken: string
+  baseUrl: string
+  customInitializationName?: string
+  productSubsetDuringOnboarding?: ExternalProductType[]
 }) => {
   const urlParams: Record<string, string> = {
     connectToken,
     disableModalTransition: 'true',
     ...(customInitializationName ? { customInitializationName } : {}),
-  };
+  }
 
   customInitializationName &&
-    (urlParams['customInitializationName'] = customInitializationName);
+    (urlParams.customInitializationName = customInitializationName)
 
   if (
     productSubsetDuringOnboarding &&
     productSubsetDuringOnboarding.length > 0
   ) {
-    urlParams['productSubsetDuringOnboarding'] =
-      productSubsetDuringOnboarding.join(',');
+    urlParams.productSubsetDuringOnboarding =
+      productSubsetDuringOnboarding.join(',')
   }
 
   const queryString = Object.entries(urlParams)
     .map(
       ([key, value]) =>
-        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
     )
-    .join('&');
+    .join('&')
 
-  return `${baseUrl}/connect?${queryString}`;
-};
+  return `${baseUrl}/connect?${queryString}`
+}
 
-let subscription: EmitterSubscription | null = null;
+let subscription: EmitterSubscription | null = null
 
 interface ShowArgs {
-  component?: KanmonConnectComponent;
-  sessionToken?: string;
+  component?: KanmonConnectComponent
+  sessionToken?: string
 }
 
 const nativeSdk = {
   start(params: KanmonConnectParams) {
-    validateParams(params);
+    validateParams(params)
 
     const kanmonEnvToUrl = {
       [KanmonConnectEnviroment.production]: 'https://connect.kanmon.com',
       [KanmonConnectEnviroment.sandbox]: 'https://connect.kanmon.dev',
       staging: 'https://connect.concar.dev',
       development: 'http://10.0.2.2:4200',
-    };
+    }
 
     const baseUrl =
-      kanmonEnvToUrl[params.environment || KanmonConnectEnviroment.production];
+      kanmonEnvToUrl[params.environment || KanmonConnectEnviroment.production]
 
     const url = buildUrl({
       connectToken: params.connectToken,
       baseUrl,
       customInitializationName: params.customInitializationName,
       productSubsetDuringOnboarding: params.productSubsetDuringOnboarding,
-    });
+    })
 
-    KanmonModule.start(url);
+    KanmonModule.start(url)
 
-    subscription?.remove();
+    subscription?.remove()
 
     // Set up WebView message listener first
     subscription = WebViewEventEmitter.addListener(
       'onWebViewMessage',
       (message) => {
-        const data: ReceivedFromKanmonMessage = JSON.parse(message);
+        const data: ReceivedFromKanmonMessage = JSON.parse(message)
 
         switch (data.action) {
           case ReceivedFromKanmonActions.HIDE:
             params.onEvent?.({
               eventType: OnEventCallbackEventType.HIDE,
-            });
-            break;
+            })
+            break
           case ReceivedFromKanmonActions.WORKFLOW_UPDATED:
             params.onEvent?.({
               eventType: OnEventCallbackEventType.USER_STATE_CHANGED,
               data: stepToUserState(
                 data.nextStep as WorkflowStep,
-                data.section
+                data.section,
               ),
-            });
-            break;
+            })
+            break
           case ReceivedFromKanmonActions.ERROR:
             params.onError?.({
               errorType: data.errorType,
               message: data.message,
-            });
-            break;
+            })
+            break
           case ReceivedFromKanmonActions.USER_CONFIRMED_INVOICE:
             params.onEvent?.({
               eventType: OnEventCallbackEventType.USER_CONFIRMED_INVOICE,
               data: data.data,
-            });
-            break;
+            })
+            break
           case ReceivedFromKanmonActions.INVOICES_ALREADY_CONFIRMED:
             params.onEvent?.({
               eventType: OnEventCallbackEventType.INVOICES_ALREADY_CONFIRMED,
               data: data.data,
-            });
-            break;
+            })
+            break
           case ReceivedFromKanmonActions.USER_CONFIRMED_DRAW_REQUEST:
             params.onEvent?.({
               eventType: OnEventCallbackEventType.USER_CONFIRMED_DRAW_REQUEST,
               data: data.data,
-            });
-            break;
+            })
+            break
         }
-      }
-    );
+      },
+    )
   },
 
   show(showArgs: ShowArgs = {}) {
-    validateShowArgs(showArgs);
+    validateShowArgs(showArgs)
 
     const args: SentToKanmonConnectMessage = {
       action: SentToKanmonConnectActions.SHOW_KANMON_CONNECT,
       ...showArgs,
-    };
+    }
 
-    KanmonModule.show(JSON.stringify(args));
+    KanmonModule.show(JSON.stringify(args))
   },
 
   stop() {
-    KanmonModule.stop();
-    subscription?.remove();
+    KanmonModule.stop()
+    subscription?.remove()
   },
-};
+}
 
-export default nativeSdk;
+export default nativeSdk

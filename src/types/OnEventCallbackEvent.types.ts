@@ -2,7 +2,7 @@ import {
   ExternalDrawRequestDTO,
   ExternalInvoiceDTO,
   type Section,
-} from './General.types';
+} from './General.types'
 
 /**
  * Enumerated event type
@@ -23,13 +23,13 @@ export type UserState =
   | 'OFFER_ACCEPTED'
   | 'SERVICING'
   | 'LOAN_APPLICATION_INCOMPLETE'
-  | 'LOAN_APPLICATION_WITHDRAWN';
+  | 'LOAN_APPLICATION_WITHDRAWN'
 
 export interface UserStateWithActionMessage {
-  userState: UserState;
-  actionMessage: string;
-  actionRequired: boolean;
-  section: Section;
+  userState: UserState
+  actionMessage: string
+  actionRequired: boolean
+  section: Section
 }
 
 export enum OnEventCallbackEventType {
@@ -41,39 +41,39 @@ export enum OnEventCallbackEventType {
 }
 
 interface BaseOnEventCallbackEvent {
-  eventType: OnEventCallbackEventType;
+  eventType: OnEventCallbackEventType
 }
 
 interface UserStateChangedEvent extends BaseOnEventCallbackEvent {
-  eventType: OnEventCallbackEventType.USER_STATE_CHANGED;
-  data: UserStateWithActionMessage;
+  eventType: OnEventCallbackEventType.USER_STATE_CHANGED
+  data: UserStateWithActionMessage
 }
 
 interface UserConfirmedInvoiceEvent extends BaseOnEventCallbackEvent {
-  eventType: OnEventCallbackEventType.USER_CONFIRMED_INVOICE;
+  eventType: OnEventCallbackEventType.USER_CONFIRMED_INVOICE
   data: {
-    remainingLimitCents: number;
-    invoice: ExternalInvoiceDTO;
-  };
+    remainingLimitCents: number
+    invoice: ExternalInvoiceDTO
+  }
 }
 
 interface UserConfirmedDrawRequestEvent extends BaseOnEventCallbackEvent {
-  eventType: OnEventCallbackEventType.USER_CONFIRMED_DRAW_REQUEST;
+  eventType: OnEventCallbackEventType.USER_CONFIRMED_DRAW_REQUEST
   data: {
-    drawRequest: ExternalDrawRequestDTO;
-    remainingLimitCents: number;
-  };
+    drawRequest: ExternalDrawRequestDTO
+    remainingLimitCents: number
+  }
 }
 
 interface HideEvent extends BaseOnEventCallbackEvent {
-  eventType: OnEventCallbackEventType.HIDE;
+  eventType: OnEventCallbackEventType.HIDE
 }
 
 interface InvoicesAlreadyConfirmedEvent extends BaseOnEventCallbackEvent {
-  eventType: OnEventCallbackEventType.INVOICES_ALREADY_CONFIRMED;
+  eventType: OnEventCallbackEventType.INVOICES_ALREADY_CONFIRMED
   data: {
-    invoices: ExternalInvoiceDTO[];
-  };
+    invoices: ExternalInvoiceDTO[]
+  }
 }
 
 export type OnEventCallbackEvent =
@@ -81,4 +81,4 @@ export type OnEventCallbackEvent =
   | UserConfirmedInvoiceEvent
   | UserConfirmedDrawRequestEvent
   | HideEvent
-  | InvoicesAlreadyConfirmedEvent;
+  | InvoicesAlreadyConfirmedEvent

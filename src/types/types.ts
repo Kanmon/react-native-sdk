@@ -1,5 +1,5 @@
-import { ErrorType } from './ReceivedFromBizexMessages.types';
-import type { OnEventCallbackEvent } from './OnEventCallbackEvent.types';
+import { ErrorType } from './ReceivedFromBizexMessages.types'
+import type { OnEventCallbackEvent } from './OnEventCallbackEvent.types'
 
 export enum KanmonConnectComponent {
   SUMMARY = 'SUMMARY',
@@ -17,8 +17,8 @@ export enum KanmonConnectComponent {
 }
 
 export interface ErrorEvent {
-  errorType: ErrorType;
-  message: string;
+  errorType: ErrorType
+  message: string
 }
 
 export enum KanmonConnectEnviroment {
@@ -36,10 +36,10 @@ export enum ExternalProductType {
 }
 
 export type KanmonConnectParams = {
-  connectToken: string;
-  environment?: KanmonConnectEnviroment;
-  onEvent?: (event: OnEventCallbackEvent) => void;
-  onError?: (errorEvent: ErrorEvent) => void;
-  customInitializationName?: string;
-  productSubsetDuringOnboarding?: ExternalProductType[];
-};
+  connectToken: string
+  environment?: KanmonConnectEnviroment
+  onEvent?: (event: OnEventCallbackEvent) => void
+  onError?: (errorEvent: ErrorEvent) => void
+  customInitializationName?: string
+  productSubsetDuringOnboarding?: ExternalProductType[]
+}

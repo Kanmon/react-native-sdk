@@ -1,14 +1,14 @@
-import { NativeModules, NativeEventEmitter } from 'react-native';
+import { NativeModules, NativeEventEmitter } from 'react-native'
 
-const { KanmonModule2: KanmonModule } = NativeModules;
+const { KanmonModule } = NativeModules
 
 interface KanmonModule {
-  start(url: string): void;
-  show(showArgs: string): void;
-  sendEvent(eventName: string, eventData: string): void;
-  stop(): void;
+  start(url: string): void
+  show(showArgs: string): void
+  sendEvent(eventName: string, eventData: string): void
+  stop(): void
 }
 
-export const WebViewEventEmitter = new NativeEventEmitter(KanmonModule);
+export const WebViewEventEmitter = new NativeEventEmitter(KanmonModule)
 
-export default KanmonModule as KanmonModule;
+export default KanmonModule as KanmonModule

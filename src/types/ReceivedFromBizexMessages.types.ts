@@ -2,7 +2,7 @@ import {
   type Section,
   ExternalDrawRequestDTO,
   ExternalInvoiceDTO,
-} from './General.types';
+} from './General.types'
 
 export enum ReceivedFromKanmonActions {
   HIDE = 'HIDE',
@@ -15,7 +15,7 @@ export enum ReceivedFromKanmonActions {
 }
 
 interface BaseReceivedFromKanmonMessage {
-  action: ReceivedFromKanmonActions;
+  action: ReceivedFromKanmonActions
 }
 
 export enum ErrorType {
@@ -26,48 +26,48 @@ export enum ErrorType {
 
 // Messages from widget -> parent
 export interface HideMessage extends BaseReceivedFromKanmonMessage {
-  action: ReceivedFromKanmonActions.HIDE;
+  action: ReceivedFromKanmonActions.HIDE
 }
 
 export interface WorkflowUpdatedMessage extends BaseReceivedFromKanmonMessage {
-  action: ReceivedFromKanmonActions.WORKFLOW_UPDATED;
-  section: Section;
-  nextStep: string;
+  action: ReceivedFromKanmonActions.WORKFLOW_UPDATED
+  section: Section
+  nextStep: string
 }
 
 export interface ErrorMessage extends BaseReceivedFromKanmonMessage {
-  action: ReceivedFromKanmonActions.ERROR;
-  errorType: ErrorType;
-  message: string;
+  action: ReceivedFromKanmonActions.ERROR
+  errorType: ErrorType
+  message: string
 }
 
 export interface MessagingReadyMessage extends BaseReceivedFromKanmonMessage {
-  action: ReceivedFromKanmonActions.MESSAGING_READY;
+  action: ReceivedFromKanmonActions.MESSAGING_READY
 }
 
 export interface UserConfirmedInvoiceMessage
   extends BaseReceivedFromKanmonMessage {
-  action: ReceivedFromKanmonActions.USER_CONFIRMED_INVOICE;
+  action: ReceivedFromKanmonActions.USER_CONFIRMED_INVOICE
   data: {
-    invoice: ExternalInvoiceDTO;
-    remainingLimitCents: number;
-  };
+    invoice: ExternalInvoiceDTO
+    remainingLimitCents: number
+  }
 }
 
 export interface InvoicesAlreadyConfirmedMessage {
-  action: ReceivedFromKanmonActions.INVOICES_ALREADY_CONFIRMED;
+  action: ReceivedFromKanmonActions.INVOICES_ALREADY_CONFIRMED
   data: {
-    invoices: ExternalInvoiceDTO[];
-  };
+    invoices: ExternalInvoiceDTO[]
+  }
 }
 
 export interface UserConfirmedDrawRequestMessage
   extends BaseReceivedFromKanmonMessage {
-  action: ReceivedFromKanmonActions.USER_CONFIRMED_DRAW_REQUEST;
+  action: ReceivedFromKanmonActions.USER_CONFIRMED_DRAW_REQUEST
   data: {
-    drawRequest: ExternalDrawRequestDTO;
-    remainingLimitCents: number;
-  };
+    drawRequest: ExternalDrawRequestDTO
+    remainingLimitCents: number
+  }
 }
 
 export type ReceivedFromKanmonMessage =
@@ -77,4 +77,4 @@ export type ReceivedFromKanmonMessage =
   | ErrorMessage
   | UserConfirmedInvoiceMessage
   | InvoicesAlreadyConfirmedMessage
-  | UserConfirmedDrawRequestMessage;
+  | UserConfirmedDrawRequestMessage

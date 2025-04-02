@@ -136,12 +136,12 @@ export const ServicingStepsArray = [
   'READY_FOR_SERVICING',
 ] as const
 
-export type OfferWorkflowStep = typeof offerStepsArray[number]
+export type OfferWorkflowStep = (typeof offerStepsArray)[number]
 
 // For nested states like ONBOARDING.START_FLOW, the states are delimited by a `.`.
 // The xstate library knows how to interpret this string by default.
-export type WorkflowStep = typeof WorkflowStepsArray[number]
-export type ServicingWorkflowStep = typeof ServicingStepsArray[number]
+export type WorkflowStep = (typeof WorkflowStepsArray)[number]
+export type ServicingWorkflowStep = (typeof ServicingStepsArray)[number]
 
 export type PreOnboardingSteps =
   | 'SELECT_USER_ROLES'
