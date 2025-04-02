@@ -20,11 +20,14 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Lint files
+      - name: Lint Typescript files
         run: yarn lint
 
-      - name: Typecheck files
+      - name: Typecheck Typescript files
         run: yarn typecheck
+
+      - name: Lint Kotlin files
+        run: yarn kotlin-lint-check
 
   test:
     runs-on: ubuntu-latest
@@ -102,7 +105,7 @@ jobs:
 
       - name: Build example for Android
         env:
-          JAVA_OPTS: "-XX:MaxHeapSize=6g"
+          JAVA_OPTS: '-XX:MaxHeapSize=6g'
         run: |
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
 
