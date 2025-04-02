@@ -47,7 +47,7 @@
     "type": "git",
     "url": "git+https://github.com/Kanmon/react-native-sdk.git"
   },
-  "author": "Kanmon <integrations@kanmonhq.com> (https://kanmon.com)",
+  "author": "Kanmon <integrations@kanmonhq.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Kanmon/react-native-sdk/issues"
