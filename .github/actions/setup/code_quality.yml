@@ -30,3 +30,7 @@ jobs:
         run: yarn install
       - name: Typecheck
         run: yarn typecheck
+      - name: Typescript Lint
+        run: yarn lint
+      - name: Kotlin Lint
+        run: yarn kotlin-lint-check
