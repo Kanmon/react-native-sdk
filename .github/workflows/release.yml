@@ -9,7 +9,7 @@ name: Publish Frontend Native SDK to NPM
 on:
   push:
     branches:
-      - main
+      - GHA-release-workflow
     tags:
       - 'v*'
 
