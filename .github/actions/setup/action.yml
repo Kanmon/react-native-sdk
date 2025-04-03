@@ -20,4 +20,5 @@ runs:
         key: node-modulesc-${{ hashFiles('yarn.lock') }}
     - name: Install dependencies
       if: steps.node-cache.outputs.cache-hit != 'true'
+      shell: bash
       run: yarn install
