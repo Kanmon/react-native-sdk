@@ -1,25 +1,151 @@
-import { multiply } from '@kanmon/react-native-sdk';
-import { Text, View, StyleSheet } from 'react-native';
-import { useState, useEffect } from 'react';
+import React, { useEffect } from 'react'
+import {
+  Button,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native'
 
-export default function App() {
-  const [result, setResult] = useState<number | undefined>();
+import { Colors } from 'react-native/Libraries/NewAppScreen'
+
+import axios from 'axios'
+import nativeSdk from '../../src/index'
+import { type OnEventCallbackEvent } from '../../src/types/OnEventCallbackEvent.types'
+import {
+  type ErrorEvent,
+  KanmonConnectComponent,
+  KanmonConnectEnviroment,
+} from '../../src/types/types'
+
+const workflowHostName = 'https://workflow.concar.dev'
+
+// Sub in your test user IDs here
+const testUserId1 = process.env.TEST_USER_ID_1 as string
+// 2nd test user allows for switching between users.
+const testUserId2 = process.env.TEST_USER_ID_2 as string
+
+// For the sake of testing. Do not do this in production.
+const apiKey = process.env.KANMON_API_KEY
+
+function App(): React.JSX.Element {
+  const isDarkMode = useColorScheme() === 'dark'
+
+  const startKanmon = async (userId: string) => {
+    try {
+      const res = await axios.post(
+        `${workflowHostName}/api/platform/v2/connect-tokens`,
+        {
+          userId,
+        },
+        {
+          headers: {
+            Authorization: `ApiKey ${apiKey}`,
+          },
+        },
+      )
+
+      nativeSdk.start({
+        environment: process.env.ENVIRONMENT as KanmonConnectEnviroment,
+        connectToken: res.data.connectToken,
+        onEvent: (event: OnEventCallbackEvent) => {
+          console.log('got event', event)
+        },
+        onError: (error: ErrorEvent) => {
+          console.log('error', error)
+        },
+      })
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.log('got axios error', error.message)
+      }
+      console.log('error', error)
+    }
+  }
 
   useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
+    startKanmon(testUserId1)
+  }, [])
+
+  const backgroundStyle = {
+    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  }
 
   return (
-    <View style={styles.container}>
-      <Text>Result: {result}</Text>
-    </View>
-  );
+    <SafeAreaView style={styles.container}>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={backgroundStyle.backgroundColor}
+      />
+      <ScrollView style={backgroundStyle}>
+        <View
+          style={[
+            styles.contentContainer,
+            {
+              backgroundColor: isDarkMode ? Colors.black : Colors.white,
+            },
+          ]}
+        >
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerText}>Kanmon SDK Example</Text>
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button title="Open Kanmon" onPress={() => nativeSdk.show()} />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Open Legal Docs"
+              onPress={() =>
+                nativeSdk.show({
+                  component: KanmonConnectComponent.DOWNLOAD_AGREEMENTS,
+                })
+              }
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Start Kanmon with User 1"
+              onPress={() => startKanmon(testUserId1)}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Start Kanmon with User 2"
+              onPress={() => startKanmon(testUserId2)}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button title="Stop" onPress={() => nativeSdk.stop()} />
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-});
+  headerContainer: {
+    padding: '5%',
+  },
+  headerText: {
+    fontSize: 24,
+  },
+  contentContainer: {
+    paddingHorizontal: '5%',
+    paddingBottom: '5%',
+    paddingTop: '5%',
+  },
+  buttonContainer: {
+    padding: 10,
+  },
+})
+
+export default App

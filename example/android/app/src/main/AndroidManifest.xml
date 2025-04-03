@@ -1,6 +1,29 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.INTERNET" />
+
+  <!--
+  TODO: These are copied over from the library's AndroidManifest.xml. Needed for camera access for Persona.
+  There should be a way to inherit this from the library.
+  -->
+
+
+  <uses-feature
+    android:name="android.hardware.camera"
+    android:required="false" />
+
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.CAMERA" />
+
+  <!-- This section is needed for Android 11+ to allow WebView to access camera -->
+  <queries>
+    <intent>
+      <action android:name="android.media.action.IMAGE_CAPTURE" />
+    </intent>
+    <intent>
+      <action android:name="android.media.action.VIDEO_CAPTURE" />
+    </intent>
+  </queries>
 
     <application
       android:name=".MainApplication"

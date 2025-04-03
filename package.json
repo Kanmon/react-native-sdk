@@ -2,7 +2,7 @@
   "name": "@kanmon/react-native-sdk",
   "version": "0.1.0",
   "description": "Kanmon React Native SDK",
-  "source": "./src/index.tsx",
+  "source": "./src/index.ts",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
   "exports": {
@@ -18,32 +18,28 @@
     }
   },
   "files": [
-    "src",
     "lib",
     "android",
     "ios",
-    "cpp",
     "*.podspec",
-    "react-native.config.js",
     "!ios/build",
     "!android/build",
     "!android/gradle",
     "!android/gradlew",
     "!android/gradlew.bat",
     "!android/local.properties",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__",
     "!**/.*"
   ],
   "scripts": {
     "example": "yarn workspace @kanmon/react-native-sdk-example",
     "test": "jest",
     "typecheck": "tsc",
+    "kotlin-lint-check": "./android/gradlew -p android ktfmtCheck",
+    "kotlin-lint-format": "./android/gradlew -p android ktfmtFormat",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
-    "release": "release-it"
+    "copy-env": "cp example/sample.env example/.env"
   },
   "keywords": [
     "react-native",
@@ -54,7 +50,7 @@
     "type": "git",
     "url": "git+https://github.com/Kanmon/react-native-sdk.git"
   },
-  "author": "Kanmon <integrations@kanmonhq.com> (https://kanmon.com)",
+  "author": "Kanmon <integrations@kanmonhq.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Kanmon/react-native-sdk/issues"
@@ -64,13 +60,9 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "^19.6.0",
-    "@evilmartians/lefthook": "^1.5.0",
     "@react-native/eslint-config": "^0.73.1",
-    "@release-it/conventional-changelog": "^9.0.2",
     "@types/jest": "^29.5.5",
     "@types/react": "^18.2.44",
-    "commitlint": "^19.6.1",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
@@ -80,7 +72,6 @@
     "react": "19.0.0",
     "react-native": "0.78.1",
     "react-native-builder-bob": "^0.38.0",
-    "release-it": "^17.10.0",
     "turbo": "^1.10.7",
     "typescript": "^5.2.2"
   },
@@ -137,11 +128,10 @@
       "prettier/prettier": [
         "error",
         {
-          "quoteProps": "consistent",
+          "semi": false,
           "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "useTabs": false
+          "trailingComma": "all",
+          "tabWidth": 2
         }
       ]
     }

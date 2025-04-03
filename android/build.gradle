@@ -6,18 +6,22 @@ buildscript {
   repositories {
     google()
     mavenCentral()
+    gradlePluginPortal()
+
   }
 
   dependencies {
     classpath "com.android.tools.build:gradle:8.7.2"
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${getExtOrDefault('kotlinVersion')}"
+    classpath "com.ncorti.ktfmt.gradle:plugin:0.12.0"  // Use latest version
+
   }
 }
 
-
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
+apply plugin: "com.ncorti.ktfmt.gradle"
 
 
 def getExtOrIntegerDefault(name) {
@@ -39,7 +43,7 @@ android {
 
     sourceSets {
       main {
-        manifest.srcFile "src/main/AndroidManifestNew.xml"
+        manifest.srcFile "src/main/AndroidManifest.xml"
       }
     }
   }
@@ -65,7 +69,14 @@ android {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
+
+   kotlinOptions {
+     jvmTarget = '1.8'
+   }
 }
+
+
+
 
 repositories {
   mavenCentral()
@@ -75,7 +86,7 @@ repositories {
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
-  implementation "com.facebook.react:react-android"
+  implementation "com.facebook.react:react-android:0.78.1"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
