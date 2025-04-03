@@ -58,14 +58,9 @@ jobs:
         run: |
           git config user.name "${{ github.event.pusher.name }}"
           git config user.email "${{ github.event.pusher.email }}"
-<<<<<<< Updated upstream
-          yarn version --prerelease --preid next-${{ github.sha }} --no-git-tag-version
-          yarn publish --access public --tag next
-=======
           # Using NPM because Yarn Berry does not support preid
           npm version prerelease --preid next-${{ github.sha }} --no-git-tag-version
           npm publish --access public --tag next
->>>>>>> Stashed changes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
