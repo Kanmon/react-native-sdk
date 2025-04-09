@@ -3,11 +3,13 @@ import { NativeModules, NativeEventEmitter } from 'react-native'
 const { KanmonModule } = NativeModules
 
 interface KanmonModule {
+  show(): Promise<void>
   start(url: string): void
-  show(showArgs: string): void
   sendEvent(eventName: string, eventData: string): void
   stop(): void
 }
+
+console.log('KanmonModule', KanmonModule)
 
 export const WebViewEventEmitter = new NativeEventEmitter(KanmonModule)
 

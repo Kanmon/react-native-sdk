@@ -31,6 +31,7 @@ const testUserId2 = process.env.TEST_USER_ID_2 as string
 const apiKey = process.env.KANMON_API_KEY
 
 function App(): React.JSX.Element {
+  console.log('rendering App')
   const isDarkMode = useColorScheme() === 'dark'
 
   const startKanmon = async (userId: string) => {
@@ -47,8 +48,10 @@ function App(): React.JSX.Element {
         },
       )
 
+      console.log('res', res.data.connectToken)
+
       nativeSdk.start({
-        environment: process.env.ENVIRONMENT as KanmonConnectEnviroment,
+        environment: 'staging' as KanmonConnectEnviroment,
         connectToken: res.data.connectToken,
         onEvent: (event: OnEventCallbackEvent) => {
           console.log('got event', event)
