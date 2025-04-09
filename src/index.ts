@@ -24,6 +24,12 @@ import {
   SentToKanmonConnectActions,
 } from './types/SentToKanmonConnectMessage.types'
 
+export * from './types/types'
+export * from './types/OnEventCallbackEvent.types'
+export * from './types/ReceivedFromBizexMessages.types'
+export * from './types/SentToKanmonConnectMessage.types'
+export * from './types/General.types'
+
 const validateParams = ({ connectToken }: KanmonConnectParams) => {
   if (!connectToken || typeof connectToken !== 'string') {
     throw new Error('connect token must be defined')
