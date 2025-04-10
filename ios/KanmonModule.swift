@@ -9,13 +9,23 @@ class KanmonModule: RCTEventEmitter {
   private let logger = OSLog(subsystem: "com.kanmon.sdk", category: "KanmonModule")
   private var webView: WKWebView?
   private var webViewController: UIViewController?
-  
+  private var messageQueue: [String] = []
+  private var isWebViewLoaded: Bool = false
+
+
   override func supportedEvents() -> [String]! {
     return ["onWebViewMessage"]
   }
   
   @objc(show:)
   func show(_ args: String) -> Void {
+    if webView == nil {
+      os_log("Kanmon must be initialized before show is called.", log: logger, type: .debug)
+      return
+    }
+    
+    sendMessageToWebView(args)
+
     DispatchQueue.main.async {
       // If we already have a view controller, just present it
       if let viewController = self.webViewController {
@@ -23,6 +33,37 @@ class KanmonModule: RCTEventEmitter {
           presentedViewController.present(viewController, animated: true, completion: nil)
         }
       }
+    }
+  }
+
+  private func sendMessageToWebView(_ eventData: String) {
+    if !isWebViewLoaded {
+      messageQueue.append(eventData)
+      return
+    }
+
+    guard let webView = webView else { return }
+    
+    // Escape single quotes and create JavaScript string
+    let escapedData = eventData.replacingOccurrences(of: "\\", with: "\\\\")
+      .replacingOccurrences(of: "'", with: "\\'")
+      .replacingOccurrences(of: "\n", with: "\\n")
+
+    print("sending message to webview: \(escapedData)")
+    
+    let javascript = """
+      (function() {
+        try {
+          const event = new MessageEvent('message', { data: JSON.parse('\(escapedData)') });
+          window.dispatchEvent(event);
+        } catch (e) {
+          console.error('Error dispatching event:', e);
+        }
+      })();
+    """
+    
+    DispatchQueue.main.async {
+      webView.evaluateJavaScript(javascript, completionHandler: nil)
     }
   }
 
@@ -116,15 +157,25 @@ extension KanmonModule: WKScriptMessageHandler {
 
       print("got message (from swift): \(message.body)")
       
-      // Check for HIDE action
+      // Check for HIDE and MESSAGING_READY actions
       if let dict = message.body as? NSDictionary,
-         let action = dict["action"] as? String,
-         action == "HIDE" {
-        // Dismiss the modal but keep the WebView
-        DispatchQueue.main.async {
-          self.webViewController?.dismiss(animated: true, completion: nil)
+         let action = dict["action"] as? String {
+        switch action {
+        case "HIDE":
+          // Dismiss the modal but keep the WebView
+          DispatchQueue.main.async {
+            self.webViewController?.dismiss(animated: true, completion: nil)
+          }
+        case "MESSAGING_READY":
+          isWebViewLoaded = true
+          // Process any queued messages
+          if !messageQueue.isEmpty {
+            messageQueue.forEach { sendMessageToWebView($0) }
+            messageQueue.removeAll()
+          }
+        default:
+          break
         }
-
       }
       
       // Convert message body to JSON string
