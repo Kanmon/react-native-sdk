@@ -6,6 +6,7 @@ import UIKit
 @objc(KanmonModule)
 class KanmonModule: RCTEventEmitter {
   
+  private let logger = OSLog(subsystem: "com.kanmon.sdk", category: "KanmonModule")
   private var webView: WKWebView?
   private var webViewController: UIViewController?
   
@@ -15,7 +16,6 @@ class KanmonModule: RCTEventEmitter {
   
   @objc(show:)
   func show(_ args: String) -> Void {
-    print("args: \(args)")
   }
 
   @objc(start:)
@@ -24,6 +24,18 @@ class KanmonModule: RCTEventEmitter {
       // Create a WebView configuration
       let configuration = WKWebViewConfiguration()
       configuration.userContentController.add(self, name: "kanmonBridge")
+      
+      // Inject JavaScript to intercept postMessage
+      let script = WKUserScript(
+        source: """
+          window.postMessage = function(message, targetOrigin) {
+            window.webkit.messageHandlers.kanmonBridge.postMessage(message);
+          };
+        """,
+        injectionTime: .atDocumentStart,
+        forMainFrameOnly: false
+      )
+      configuration.userContentController.addUserScript(script)
       
       // Create the WebView with full screen bounds
       let webView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
@@ -42,9 +54,8 @@ class KanmonModule: RCTEventEmitter {
         webView.load(request)
       }
       
-      // Present the view controller modally
-      if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
-        rootViewController.present(viewController, animated: true, completion: nil)
+      if let presentedViewController = RCTPresentedViewController() {
+        presentedViewController.present(viewController, animated: true, completion: nil)
       }
     }
   }
@@ -69,8 +80,27 @@ extension KanmonModule: WKNavigationDelegate {
 extension KanmonModule: WKScriptMessageHandler {
   func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
     if message.name == "kanmonBridge" {
+      // Check if message body is empty string
+      if let messageBody = message.body as? String, messageBody.isEmpty {
+        return
+      }
+
+      
+      // Convert message body to JSON string
+      var jsonString: String?
+      do {
+        let jsonData = try JSONSerialization.data(withJSONObject: message.body, options: [])
+        jsonString = String(data: jsonData, encoding: .utf8)
+      } catch {
+        return
+      }
+      
+      guard let jsonString = jsonString else {
+        return
+      }
+      
       // Forward the message to React Native
-      self.sendEvent(withName: "onWebViewMessage", body: message.body)
+      self.sendEvent(withName: "onWebViewMessage", body: jsonString)
     }
   }
 }
