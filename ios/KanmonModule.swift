@@ -16,6 +16,14 @@ class KanmonModule: RCTEventEmitter {
   
   @objc(show:)
   func show(_ args: String) -> Void {
+    DispatchQueue.main.async {
+      // If we already have a view controller, just present it
+      if let viewController = self.webViewController {
+        if let presentedViewController = RCTPresentedViewController() {
+          presentedViewController.present(viewController, animated: true, completion: nil)
+        }
+      }
+    }
   }
 
   @objc(start:)
@@ -63,7 +71,28 @@ class KanmonModule: RCTEventEmitter {
   @objc(stop)
   func stop() -> Void {
     DispatchQueue.main.async {
+      // Clean up the WebView
+      if let webView = self.webView {
+        // Stop any ongoing navigation
+        webView.stopLoading()
+        
+        // Clear the navigation delegate
+        webView.navigationDelegate = nil
+        
+        // Remove the message handler
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "kanmonBridge")
+        
+        // Remove all user scripts
+        webView.configuration.userContentController.removeAllUserScripts()
+        
+        // Clear the WebView
+        webView.loadHTMLString("", baseURL: nil)
+      }
+      
+      // Dismiss the view controller if it's presented
       self.webViewController?.dismiss(animated: true, completion: nil)
+      
+      // Clear references
       self.webView = nil
       self.webViewController = nil
     }
@@ -85,6 +114,18 @@ extension KanmonModule: WKScriptMessageHandler {
         return
       }
 
+      print("got message (from swift): \(message.body)")
+      
+      // Check for HIDE action
+      if let dict = message.body as? NSDictionary,
+         let action = dict["action"] as? String,
+         action == "HIDE" {
+        // Dismiss the modal but keep the WebView
+        DispatchQueue.main.async {
+          self.webViewController?.dismiss(animated: true, completion: nil)
+        }
+
+      }
       
       // Convert message body to JSON string
       var jsonString: String?

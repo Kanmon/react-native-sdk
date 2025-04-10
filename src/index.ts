@@ -270,7 +270,6 @@ const nativeSdk = {
     subscription = WebViewEventEmitter.addListener(
       'onWebViewMessage',
       (message) => {
-        console.log('got message here!', message)
         const data: ReceivedFromKanmonMessage = JSON.parse(message)
 
         switch (data.action) {
