@@ -49,7 +49,6 @@ class KanmonModule: RCTEventEmitter {
       .replacingOccurrences(of: "'", with: "\\'")
       .replacingOccurrences(of: "\n", with: "\\n")
 
-    print("sending message to webview: \(escapedData)")
     
     let javascript = """
       (function() {
@@ -101,10 +100,6 @@ class KanmonModule: RCTEventEmitter {
       if let url = URL(string: url) {
         let request = URLRequest(url: url)
         webView.load(request)
-      }
-      
-      if let presentedViewController = RCTPresentedViewController() {
-        presentedViewController.present(viewController, animated: true, completion: nil)
       }
     }
   }
