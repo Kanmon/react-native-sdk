@@ -9,8 +9,6 @@ interface KanmonModule {
   stop(): void
 }
 
-console.log('KanmonModule', KanmonModule)
-
 export const WebViewEventEmitter = new NativeEventEmitter(KanmonModule)
 
 export default KanmonModule as KanmonModule

@@ -5,7 +5,7 @@ import React
 class KanmonModule: RCTEventEmitter {
   
   override func supportedEvents() -> [String]! {
-    return ["WebViewEvent"]
+    return ["onWebViewMessage"]
   }
   
   @objc(show:)
