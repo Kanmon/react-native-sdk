@@ -1,6 +1,7 @@
 import Foundation
 import React
 import WebKit
+import UIKit
 
 @objc(KanmonModule)
 class KanmonModule: RCTEventEmitter {
@@ -24,14 +25,15 @@ class KanmonModule: RCTEventEmitter {
       let configuration = WKWebViewConfiguration()
       configuration.userContentController.add(self, name: "kanmonBridge")
       
-      // Create the WebView
-      let webView = WKWebView(frame: .zero, configuration: configuration)
+      // Create the WebView with full screen bounds
+      let webView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
       webView.navigationDelegate = self
       self.webView = webView
       
       // Create a view controller to hold the WebView
       let viewController = UIViewController()
       viewController.view = webView
+      viewController.modalPresentationStyle = .fullScreen // Make it full screen
       self.webViewController = viewController
       
       // Load the URL
