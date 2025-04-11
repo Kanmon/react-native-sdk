@@ -13,13 +13,12 @@ import {
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 
 import axios from 'axios'
-import nativeSdk from '../../src/index'
-import { type OnEventCallbackEvent } from '../../src/types/OnEventCallbackEvent.types'
-import {
-  type ErrorEvent,
+import nativeSdk, {
   KanmonConnectComponent,
   KanmonConnectEnviroment,
-} from '../../src/types/types'
+  type ErrorEvent,
+  type OnEventCallbackEvent,
+} from '../../src/index'
 
 const workflowHostName = 'https://workflow.concar.dev'
 
