@@ -78,6 +78,9 @@ class KanmonModule: RCTEventEmitter {
       configuration.allowsInlineMediaPlayback = true
       configuration.mediaTypesRequiringUserActionForPlayback = []
       
+      // Enable window.open
+      configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
+      
       // Inject JavaScript to intercept postMessage
       let script = WKUserScript(
         source: """
@@ -89,17 +92,29 @@ class KanmonModule: RCTEventEmitter {
         forMainFrameOnly: false
       )
       configuration.userContentController.addUserScript(script)
+
+      // // Inject JavaScript to override window.open
+      // let windowOpenScript = WKUserScript(
+      //   source: """
+      //     window.open = function(url, target, features) {
+      //       return window.open('https://335b-12-139-162-66.ngrok-free.app/api/v1/servicing/loan-application-documents/3adba55d-77b0-4eff-879e-12a1b2348d64/download', target, features);
+      //     };
+      //   """,
+      //   injectionTime: .atDocumentStart,
+      //   forMainFrameOnly: false
+      // )
+      // configuration.userContentController.addUserScript(windowOpenScript)
       
       // Create the WebView with full screen bounds
       let webView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
       webView.navigationDelegate = self
-      webView.uiDelegate = self  // Add this for handling permission requests
+      webView.uiDelegate = self
       self.webView = webView
       
       // Create a view controller to hold the WebView
       let viewController = UIViewController()
       viewController.view = webView
-      viewController.modalPresentationStyle = .fullScreen // Make it full screen
+      viewController.modalPresentationStyle = .fullScreen
       self.webViewController = viewController
       
       // Load the URL
@@ -143,7 +158,6 @@ class KanmonModule: RCTEventEmitter {
 
 extension KanmonModule: WKNavigationDelegate {
   func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-    // Allow all navigation
     decisionHandler(.allow)
   }
 }
@@ -209,8 +223,8 @@ extension KanmonModule: WKScriptMessageHandler {
 }
 
 extension KanmonModule: WKUIDelegate {
+  // Called when Persona requests camera access
   func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
-    // For camera access
     if type == .camera {
       AVCaptureDevice.requestAccess(for: .video) { granted in
         DispatchQueue.main.async {
@@ -220,5 +234,39 @@ extension KanmonModule: WKUIDelegate {
     } else {
       decisionHandler(.deny)
     }
+  }
+
+  // Called when window.open is called
+  func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+    DispatchQueue.main.async {
+      let newWebView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
+      newWebView.navigationDelegate = self
+      newWebView.uiDelegate = self
+      
+      let newViewController = UIViewController()
+      newViewController.view = newWebView
+      newViewController.modalPresentationStyle = .fullScreen
+      
+      let closeButton = UIButton(type: .system)
+      closeButton.setTitle("Close", for: .normal)
+      closeButton.addAction(UIAction { [weak newViewController] _ in
+        newViewController?.dismiss(animated: true, completion: nil)
+      }, for: .touchUpInside)
+      closeButton.frame = CGRect(
+        x: UIScreen.main.bounds.width - 90,
+        y: 50,
+        width: 100,
+        height: 40
+      )
+      newViewController.view.addSubview(closeButton)
+      
+      if let url = navigationAction.request.url {
+        newWebView.load(URLRequest(url: url))
+      }
+      
+      self.webViewController?.present(newViewController, animated: true, completion: nil)
+    }
+    
+    return nil
   }
 }
