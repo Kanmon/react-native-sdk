@@ -2,6 +2,7 @@ import Foundation
 import React
 import WebKit
 import UIKit
+import AVFoundation
 
 @objc(KanmonModule)
 class KanmonModule: RCTEventEmitter {
@@ -73,6 +74,10 @@ class KanmonModule: RCTEventEmitter {
       let configuration = WKWebViewConfiguration()
       configuration.userContentController.add(self, name: "kanmonBridge")
       
+      // Enable camera access for Persona
+      configuration.allowsInlineMediaPlayback = true
+      configuration.mediaTypesRequiringUserActionForPlayback = []
+      
       // Inject JavaScript to intercept postMessage
       let script = WKUserScript(
         source: """
@@ -88,6 +93,7 @@ class KanmonModule: RCTEventEmitter {
       // Create the WebView with full screen bounds
       let webView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
       webView.navigationDelegate = self
+      webView.uiDelegate = self  // Add this for handling permission requests
       self.webView = webView
       
       // Create a view controller to hold the WebView
@@ -145,12 +151,17 @@ extension KanmonModule: WKNavigationDelegate {
 extension KanmonModule: WKScriptMessageHandler {
   func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
     if message.name == "kanmonBridge" {
-      // Check if message body is empty string
-      if let messageBody = message.body as? String, messageBody.isEmpty {
+      // Get the current webview URL domain
+      guard let webView = webView else {
         return
       }
-
-      print("got message (from swift): \(message.body)")
+      
+      let webViewDomain = webView.url?.host ?? "unknown"
+      let messageDomain = message.frameInfo.securityOrigin.host ?? "unknown"
+      
+      if webViewDomain != messageDomain {
+        return
+      }
       
       // Check for HIDE and MESSAGING_READY actions
       if let dict = message.body as? NSDictionary,
@@ -176,18 +187,38 @@ extension KanmonModule: WKScriptMessageHandler {
       // Convert message body to JSON string
       var jsonString: String?
       do {
-        let jsonData = try JSONSerialization.data(withJSONObject: message.body, options: [])
-        jsonString = String(data: jsonData, encoding: .utf8)
+        // First check if we can serialize the message body
+        if JSONSerialization.isValidJSONObject(message.body) {
+          let jsonData = try JSONSerialization.data(withJSONObject: message.body, options: [])
+          jsonString = String(data: jsonData, encoding: .utf8)
+        }
       } catch {
+        print("Error converting message to JSON: \(error)")
         return
       }
       
       guard let jsonString = jsonString else {
+        print("Failed to convert message to string")
         return
       }
       
       // Forward the message to React Native
       self.sendEvent(withName: "onWebViewMessage", body: jsonString)
+    }
+  }
+}
+
+extension KanmonModule: WKUIDelegate {
+  func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+    // For camera access
+    if type == .camera {
+      AVCaptureDevice.requestAccess(for: .video) { granted in
+        DispatchQueue.main.async {
+          decisionHandler(granted ? .grant : .deny)
+        }
+      }
+    } else {
+      decisionHandler(.deny)
     }
   }
 }
