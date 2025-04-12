@@ -93,17 +93,18 @@ class KanmonModule: RCTEventEmitter {
       )
       configuration.userContentController.addUserScript(script)
 
-      // // Inject JavaScript to override window.open
-      // let windowOpenScript = WKUserScript(
-      //   source: """
-      //     window.open = function(url, target, features) {
-      //       return window.open('https://335b-12-139-162-66.ngrok-free.app/api/v1/servicing/loan-application-documents/3adba55d-77b0-4eff-879e-12a1b2348d64/download', target, features);
-      //     };
-      //   """,
-      //   injectionTime: .atDocumentStart,
-      //   forMainFrameOnly: false
-      // )
-      // configuration.userContentController.addUserScript(windowOpenScript)
+      // Inject JavaScript to override window.open
+      let windowOpenScript = WKUserScript(
+        source: """
+        const og = window.open;
+          window.open = function(url, target, features) {
+            return og('https://storage.googleapis.com/business-document-uploads-staging/platform-document-uploads/invoices/886048d1-34a2-4e30-99ba-c6c502f8881c-blob?GoogleAccessId=staging-cdn%40aerobic-furnace-316818.iam.gserviceaccount.com&Expires=1744441343&Signature=UAZfprm1crDiZAyZyz72AWsFz3duf20nsiVageTPxdFFsyUDaW%2F240N0n1Yin5pC%2F0iQN%2FHdplLAiRr2YxACfoZ9OTZNR8BeSWlDT7mMjBTxb44UIe8Iw3JDKdVFLX%2Ff9XpGYI3hJB8ADObru3lr2Toy1uD3I0SPTtJpJ9V6vaa7q2C%2FO4%2FYGFKRqS%2FdADny1H94vc9ypLuwWCH6fzl8UW4e0AvdpwXmafKAYBPbFtezCHwWtrzEKALrvSXSRTiaaXe29LpBFfjdCHX4mKANV71bXxYk4Hy4fPyIBG%2Fa6m6hHR6je%2BgLKxRaYDfUo8WTr4QByWVuwTTw37eTfmHj0Q%3D%3D&response-content-disposition=attachment;filename=%22invoice.pdf%22', target, features);
+          };
+        """,
+        injectionTime: .atDocumentStart,
+        forMainFrameOnly: false
+      )
+      configuration.userContentController.addUserScript(windowOpenScript)
       
       // Create the WebView with full screen bounds
       let webView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
@@ -160,6 +161,70 @@ extension KanmonModule: WKNavigationDelegate {
   func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
     decisionHandler(.allow)
   }
+
+  func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+    let response = navigationResponse.response as? HTTPURLResponse
+    let contentDisposition = response?.allHeaderFields["Content-Disposition"] as? String
+
+    if let disposition = contentDisposition, disposition.contains("attachment") {
+        // Extract filename from Content-Disposition
+        var filename = response?.url?.lastPathComponent ?? "downloaded_file"
+        if let filenameRange = disposition.range(of: "filename=\"(.*?)\"", options: .regularExpression) {
+            filename = String(disposition[filenameRange])
+                .replacingOccurrences(of: "filename=\"", with: "")
+                .replacingOccurrences(of: "\"", with: "")
+        }
+        
+        // File download detected
+        if let url = response?.url {
+            downloadFile(from: url, filename: filename)
+        }
+
+        decisionHandler(.cancel) // Prevent WebView from trying to render it
+        return
+    }
+    decisionHandler(.allow)
+  }
+
+    func downloadFile(from url: URL, filename: String) {
+        let task = URLSession.shared.downloadTask(with: url) { localURL, response, error in
+            guard let localURL = localURL else {
+                print("Download error: \(String(describing: error))")
+                return
+            }
+
+            let fileManager = FileManager.default
+            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let destinationURL = documentsURL.appendingPathComponent(filename)
+
+            do {
+                if fileManager.fileExists(atPath: destinationURL.path) {
+                    try fileManager.removeItem(at: destinationURL)
+                }
+                try fileManager.moveItem(at: localURL, to: destinationURL)
+                print("File saved to: \(destinationURL.path)")
+                
+                // Show share sheet on the main thread
+                DispatchQueue.main.async {
+                    let activityViewController = UIActivityViewController(
+                        activityItems: [destinationURL],
+                        applicationActivities: nil
+                    )
+                    
+                    // Present the share sheet
+                    if let viewController = RCTPresentedViewController() {
+                        activityViewController.popoverPresentationController?.sourceView = viewController.view
+                        viewController.present(activityViewController, animated: true, completion: nil)
+                    }
+                }
+            } catch {
+                print("File error: \(error)")
+            }
+        }
+
+        task.resume()
+    }
+
 }
 
 extension KanmonModule: WKScriptMessageHandler {
