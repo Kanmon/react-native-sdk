@@ -98,7 +98,7 @@ class KanmonModule: RCTEventEmitter {
         source: """
         const og = window.open;
           window.open = function(url, target, features) {
-            return og('https://storage.googleapis.com/business-document-uploads-staging/platform-document-uploads/invoices/886048d1-34a2-4e30-99ba-c6c502f8881c-blob?GoogleAccessId=staging-cdn%40aerobic-furnace-316818.iam.gserviceaccount.com&Expires=1744441343&Signature=UAZfprm1crDiZAyZyz72AWsFz3duf20nsiVageTPxdFFsyUDaW%2F240N0n1Yin5pC%2F0iQN%2FHdplLAiRr2YxACfoZ9OTZNR8BeSWlDT7mMjBTxb44UIe8Iw3JDKdVFLX%2Ff9XpGYI3hJB8ADObru3lr2Toy1uD3I0SPTtJpJ9V6vaa7q2C%2FO4%2FYGFKRqS%2FdADny1H94vc9ypLuwWCH6fzl8UW4e0AvdpwXmafKAYBPbFtezCHwWtrzEKALrvSXSRTiaaXe29LpBFfjdCHX4mKANV71bXxYk4Hy4fPyIBG%2Fa6m6hHR6je%2BgLKxRaYDfUo8WTr4QByWVuwTTw37eTfmHj0Q%3D%3D&response-content-disposition=attachment;filename=%22invoice.pdf%22', target, features);
+            return og('https://storage.googleapis.com/business-document-uploads-staging/platform-document-uploads/invoices/886048d1-34a2-4e30-99ba-c6c502f8881c-blob?GoogleAccessId=staging-cdn%40aerobic-furnace-316818.iam.gserviceaccount.com&Expires=1744664908&Signature=1RBM6KxwsetWxYmRraUHKQRU131S5ij14a%2FfG7VD5XUtJeye5oNK0u5dNmvY99VcaJs7TaasluCs%2BHreM3eIMmRYvJRjNKf4ST4QDpC75W%2FB1xQmJ0DOZRjTVCyfGVkHyfwwskeYeqIZZarCxkgGAFgis0JKE%2F8%2FZJYeSghb3YBvMvwwsVkFFttg0NdQmTAOlydOImankI5NrMQfyNpbPNS4o2UoCrt14YEEU6ug%2Bgeas34vPS75h5HTAu7KyPnpa4hCn4qX15dRsH%2FJ6OJzaMDrWUtwghWVJwZE7bA4LlJu%2BRudKG9l%2Bj2B4IMB%2FafXgv0IM7V7hL9oYMsUrcNs%2Bw%3D%3D&response-content-disposition=attachment;filename=%22invoice.pdf%22', target, features);
           };
         """,
         injectionTime: .atDocumentStart,
@@ -186,44 +186,7 @@ extension KanmonModule: WKNavigationDelegate {
     decisionHandler(.allow)
   }
 
-    func downloadFile(from url: URL, filename: String) {
-        let task = URLSession.shared.downloadTask(with: url) { localURL, response, error in
-            guard let localURL = localURL else {
-                print("Download error: \(String(describing: error))")
-                return
-            }
 
-            let fileManager = FileManager.default
-            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            let destinationURL = documentsURL.appendingPathComponent(filename)
-
-            do {
-                if fileManager.fileExists(atPath: destinationURL.path) {
-                    try fileManager.removeItem(at: destinationURL)
-                }
-                try fileManager.moveItem(at: localURL, to: destinationURL)
-                print("File saved to: \(destinationURL.path)")
-                
-                // Show share sheet on the main thread
-                DispatchQueue.main.async {
-                    let activityViewController = UIActivityViewController(
-                        activityItems: [destinationURL],
-                        applicationActivities: nil
-                    )
-                    
-                    // Present the share sheet
-                    if let viewController = RCTPresentedViewController() {
-                        activityViewController.popoverPresentationController?.sourceView = viewController.view
-                        viewController.present(activityViewController, animated: true, completion: nil)
-                    }
-                }
-            } catch {
-                print("File error: \(error)")
-            }
-        }
-
-        task.resume()
-    }
 
 }
 
@@ -288,6 +251,45 @@ extension KanmonModule: WKScriptMessageHandler {
 }
 
 extension KanmonModule: WKUIDelegate {
+  func downloadFile(from url: URL, filename: String) {
+    let task = URLSession.shared.downloadTask(with: url) { localURL, response, error in
+        guard let localURL = localURL else {
+            print("Download error: \(String(describing: error))")
+            return
+        }
+
+        let fileManager = FileManager.default
+        let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let destinationURL = documentsURL.appendingPathComponent(filename)
+
+        do {
+            if fileManager.fileExists(atPath: destinationURL.path) {
+                try fileManager.removeItem(at: destinationURL)
+            }
+            try fileManager.moveItem(at: localURL, to: destinationURL)
+            print("File saved to: \(destinationURL.path)")
+            
+            // Show share sheet on the main thread
+            DispatchQueue.main.async {
+                let activityViewController = UIActivityViewController(
+                    activityItems: [destinationURL],
+                    applicationActivities: nil
+                )
+                
+                // Present the share sheet
+                if let viewController = RCTPresentedViewController() {
+                    activityViewController.popoverPresentationController?.sourceView = viewController.view
+                    viewController.present(activityViewController, animated: true, completion: nil)
+                }
+            }
+        } catch {
+            print("File error: \(error)")
+        }
+      }
+
+      task.resume()
+  }
+
   // Called when Persona requests camera access
   func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
     if type == .camera {
@@ -303,7 +305,33 @@ extension KanmonModule: WKUIDelegate {
 
   // Called when window.open is called
   func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+    guard let url = navigationAction.request.url else {
+      return nil
+    }
+
+
     DispatchQueue.main.async {
+      // If it's a file download, then download the file
+      let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+      if let value = components?.queryItems?.first(where: { $0.name == "response-content-disposition" })?.value {
+          // Check if this is an attachment
+          guard value.lowercased().contains("attachment") else {
+              return
+          }
+          
+          // Extract filename if present
+          var filename = "download"
+          if let filenameMatch = value.range(of: "filename=([^;]+)", options: .regularExpression) {
+              // Get the filename portion
+              filename = String(value[filenameMatch].dropFirst(9))
+              // Remove surrounding quotes if present
+              filename = filename.trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
+          }
+
+          self.downloadFile(from: url, filename: filename)
+          return
+      }
+
       let newWebView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
       newWebView.navigationDelegate = self
       newWebView.uiDelegate = self
