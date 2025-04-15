@@ -98,7 +98,8 @@ class KanmonModule: RCTEventEmitter {
         source: """
         const og = window.open;
           window.open = function(url, target, features) {
-            return og('https://storage.googleapis.com/business-document-uploads-staging/platform-document-uploads/invoices/886048d1-34a2-4e30-99ba-c6c502f8881c-blob?GoogleAccessId=staging-cdn%40aerobic-furnace-316818.iam.gserviceaccount.com&Expires=1744664908&Signature=1RBM6KxwsetWxYmRraUHKQRU131S5ij14a%2FfG7VD5XUtJeye5oNK0u5dNmvY99VcaJs7TaasluCs%2BHreM3eIMmRYvJRjNKf4ST4QDpC75W%2FB1xQmJ0DOZRjTVCyfGVkHyfwwskeYeqIZZarCxkgGAFgis0JKE%2F8%2FZJYeSghb3YBvMvwwsVkFFttg0NdQmTAOlydOImankI5NrMQfyNpbPNS4o2UoCrt14YEEU6ug%2Bgeas34vPS75h5HTAu7KyPnpa4hCn4qX15dRsH%2FJ6OJzaMDrWUtwghWVJwZE7bA4LlJu%2BRudKG9l%2Bj2B4IMB%2FafXgv0IM7V7hL9oYMsUrcNs%2Bw%3D%3D&response-content-disposition=attachment;filename=%22invoice.pdf%22', target, features);
+            // return og('https://storage.googleapis.com/business-document-uploads-staging/platform-document-uploads/invoices/886048d1-34a2-4e30-99ba-c6c502f8881c-blob?GoogleAccessId=staging-cdn%40aerobic-furnace-316818.iam.gserviceaccount.com&Expires=1744698732&Signature=2Ruc7Z%2FF4CTApNe%2Fbz8iiipVqMVQvrMzkIskFW3JJb7F3CIqzIffeaMF%2BMPmJswsUXfmu4s54atVYTe3ilu1y6blDv6cwlE2E0pI6IhI2B%2FXNJvjgCSfHST9g24xatc7vb0pqbdc5%2B4X9wAahQRn2a4bqCvlIm7qtAt%2Bx039aCP0XaNaEqv%2FLyDkX6%2F6pMLDfKq0E3N07oKTd5D7af%2BMxZxlO4EiJyo6k3PGAIlpAGwUpuzmDIuxfwWuItu49CQtwak6jaYZJVM1n3PQJS%2Bael6%2FX9dPtOMO48IpZ9onSKV602DZtET%2F8xm8c3l%2FVFpXD6KTl5QSn4yWjTtWpDKT6Q%3D%3D&response-content-disposition=attachment;filename=%22invoice.pdf%22', target, features);
+            // return og('https://storage.googleapis.com/business-document-uploads-staging/platform-document-uploads/invoices/886048d1-34a2-4e30-99ba-c6c502f8881c-blob?GoogleAccessId=staging-cdn%40aerobic-furnace-316818.iam.gserviceaccount.com&Expires=1744698732&Signature=2Ruc7Z%2FF4CTApNe%2Fbz8iiipVqMVQvrMzkIskFW3JJb7F3CIqzIffeaMF%2BMPmJswsUXfmu4s54atVYTe3ilu1y6blDv6cwlE2E0pI6IhI2B%2FXNJvjgCSfHST9g24xatc7vb0pqbdc5%2B4X9wAahQRn2a4bqCvlIm7qtAt%2Bx039aCP0XaNaEqv%2FLyDkX6%2F6pMLDfKq0E3N07oKTd5D7af%2BMxZxlO4EiJyo6k3PGAIlpAGwUpuzmDIuxfwWuItu49CQtwak6jaYZJVM1n3PQJS%2Bael6%2FX9dPtOMO48IpZ9onSKV602DZtET%2F8xm8c3l%2FVFpXD6KTl5QSn4yWjTtWpDKT6Q%3D%3D&response-content-disposition=attachment', target, features);
           };
         """,
         injectionTime: .atDocumentStart,
@@ -109,7 +110,6 @@ class KanmonModule: RCTEventEmitter {
       // Create the WebView with full screen bounds
       let webView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
       webView.navigationDelegate = self
-      webView.uiDelegate = self
       self.webView = webView
       
       // Create a view controller to hold the WebView
@@ -155,39 +155,6 @@ class KanmonModule: RCTEventEmitter {
       self.webViewController = nil
     }
   }
-}
-
-extension KanmonModule: WKNavigationDelegate {
-  func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-    decisionHandler(.allow)
-  }
-
-  func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
-    let response = navigationResponse.response as? HTTPURLResponse
-    let contentDisposition = response?.allHeaderFields["Content-Disposition"] as? String
-
-    if let disposition = contentDisposition, disposition.contains("attachment") {
-        // Extract filename from Content-Disposition
-        var filename = response?.url?.lastPathComponent ?? "downloaded_file"
-        if let filenameRange = disposition.range(of: "filename=\"(.*?)\"", options: .regularExpression) {
-            filename = String(disposition[filenameRange])
-                .replacingOccurrences(of: "filename=\"", with: "")
-                .replacingOccurrences(of: "\"", with: "")
-        }
-        
-        // File download detected
-        if let url = response?.url {
-            downloadFile(from: url, filename: filename)
-        }
-
-        decisionHandler(.cancel) // Prevent WebView from trying to render it
-        return
-    }
-    decisionHandler(.allow)
-  }
-
-
-
 }
 
 extension KanmonModule: WKScriptMessageHandler {
@@ -263,12 +230,6 @@ extension KanmonModule: WKUIDelegate {
         let destinationURL = documentsURL.appendingPathComponent(filename)
 
         do {
-            if fileManager.fileExists(atPath: destinationURL.path) {
-                try fileManager.removeItem(at: destinationURL)
-            }
-            try fileManager.moveItem(at: localURL, to: destinationURL)
-            print("File saved to: \(destinationURL.path)")
-            
             // Show share sheet on the main thread
             DispatchQueue.main.async {
                 let activityViewController = UIActivityViewController(
@@ -309,21 +270,21 @@ extension KanmonModule: WKUIDelegate {
       return nil
     }
 
-
     DispatchQueue.main.async {
       // If it's a file download, then download the file
       let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
       if let value = components?.queryItems?.first(where: { $0.name == "response-content-disposition" })?.value {
-          // Check if this is an attachment
+          // Check if this is an attachment. Note the header above must be passed in.
           guard value.lowercased().contains("attachment") else {
-              return
+            return
           }
           
           // Extract filename if present
-          var filename = "download"
-          if let filenameMatch = value.range(of: "filename=([^;]+)", options: .regularExpression) {
+          let filenameKey = "filename="
+          var filename = url.lastPathComponent
+          if let filenameMatch = value.range(of: "\(filenameKey)([^;]+)", options: .regularExpression) {
               // Get the filename portion
-              filename = String(value[filenameMatch].dropFirst(9))
+              filename = String(value[filenameMatch].dropFirst(filenameKey.count))
               // Remove surrounding quotes if present
               filename = filename.trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
           }
@@ -333,7 +294,6 @@ extension KanmonModule: WKUIDelegate {
       }
 
       let newWebView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
-      newWebView.navigationDelegate = self
       newWebView.uiDelegate = self
       
       let newViewController = UIViewController()
@@ -363,3 +323,5 @@ extension KanmonModule: WKUIDelegate {
     return nil
   }
 }
+
+
