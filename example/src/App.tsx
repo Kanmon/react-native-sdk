@@ -37,6 +37,13 @@ function App(): React.JSX.Element {
 
   const startKanmon = async (userId: string) => {
     try {
+      console.log('?????', userId, workflowHostName, environment)
+
+      console.log('ping')
+      await axios.get('https://workflow.concar.dev/api/ping')
+
+      console.log('pong')
+
       const res = await axios.post(
         `${workflowHostName}/api/platform/v2/connect-tokens`,
         {
@@ -48,6 +55,8 @@ function App(): React.JSX.Element {
           },
         },
       )
+
+      console.log('here?')
 
       nativeSdk.start({
         environment: environment as KanmonConnectEnviroment,
@@ -61,7 +70,7 @@ function App(): React.JSX.Element {
       })
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log('got axios error', error)
+        console.log('got axios error', error.code)
       } else {
         console.log('error', error)
       }

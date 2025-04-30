@@ -142,10 +142,24 @@ class KanmonModule: RCTEventEmitter {
 
       webView.uiDelegate = self
       self.webView = webView
-      
+
       // Create a view controller to hold the WebView
       let viewController = UIViewController()
-      viewController.view = webView
+      let containerView = UIView()
+      containerView.addSubview(webView)
+
+      // Constraints to fill the safe area
+      webView.translatesAutoresizingMaskIntoConstraints = false
+      NSLayoutConstraint.activate([
+          webView.topAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.topAnchor),
+          webView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+          webView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+          webView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+      ])
+
+      containerView.backgroundColor = .white
+
+      viewController.view = containerView
       viewController.modalPresentationStyle = .fullScreen
       self.webViewController = viewController
       
@@ -196,10 +210,15 @@ extension KanmonModule: WKScriptMessageHandler {
             return
         }
 
+                print("here - filename \(filename)")
+
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
+        print("here - tempURL \(tempURL)")
 
         do {
             try data.write(to: tempURL)
+            print("after data write")
             // Present share sheet
             let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
             if let viewController = RCTPresentedViewController() {
@@ -224,14 +243,15 @@ extension KanmonModule: WKScriptMessageHandler {
       if webViewDomain != messageDomain {
         return
       }
-      
 
-        print("message.body: \(message.body)")
+      print("here - message.body \(message.body)")
+
 
       // Check for HIDE and MESSAGING_READY actions
       if let dict = message.body as? NSDictionary,
          let action = dict["action"] as? String {
-          print("action: \(action)")
+
+        print("here - action \(action)")
         switch action {
         case "HIDE":
           // Dismiss the modal but keep the WebView
