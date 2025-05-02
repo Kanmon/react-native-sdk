@@ -162,7 +162,7 @@ extension KanmonModule: WKScriptMessageHandler {
         let dataParts = base64String.components(separatedBy: ",")
         guard dataParts.count == 2,
               let mimeTypeComponent = base64String.components(separatedBy: ":").dropFirst().first,
-              let mimeType = mimeTypeComponent?.components(separatedBy: ";").first,
+              let mimeType = mimeTypeComponent.components(separatedBy: ";").first,
               let data = Data(base64Encoded: dataParts[1]) else {
             print("Invalid base64 data")
             return
