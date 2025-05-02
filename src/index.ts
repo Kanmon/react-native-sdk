@@ -265,8 +265,6 @@ const nativeSdk = {
 
     KanmonModule.start(url)
 
-    console.log('url is', url)
-
     subscription?.remove()
 
     // Set up WebView message listener first

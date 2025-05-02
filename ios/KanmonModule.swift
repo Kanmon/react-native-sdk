@@ -81,63 +81,22 @@ class KanmonModule: RCTEventEmitter {
       // Enable window.open
       configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
       
-      // Inject JavaScript to intercept postMessage
+      // Inject JavaScript to override postMessage
       let script = WKUserScript(
         source: """
           window.postMessage = function(message, targetOrigin) {
             window.webkit.messageHandlers.kanmonBridge.postMessage(message);
           };
-
-        console.log = function(message) {
-            window.webkit.messageHandlers.kanmonBridge.postMessage({ type: 'log', message: message });
-        };
-        console.error = function(message) {
-            window.webkit.messageHandlers.kanmonBridge.postMessage({ type: 'error', message: message });
-        };
         """,
         injectionTime: .atDocumentStart,
         forMainFrameOnly: false
       )
       configuration.userContentController.addUserScript(script)
-
-
-
-      // Inject JavaScript to override window.open
-      // let windowOpenScript = WKUserScript(
-      //   source: """
-      //   // const og = window.open;
-      //   //   window.open = function(url, target, features) {
-      //   //     // return og('https://storage.googleapis.com/business-document-uploads-staging/platform-document-uploads/invoices/886048d1-34a2-4e30-99ba-c6c502f8881c-blob?GoogleAccessId=staging-cdn%40aerobic-furnace-316818.iam.gserviceaccount.com&Expires=1744698732&Signature=2Ruc7Z%2FF4CTApNe%2Fbz8iiipVqMVQvrMzkIskFW3JJb7F3CIqzIffeaMF%2BMPmJswsUXfmu4s54atVYTe3ilu1y6blDv6cwlE2E0pI6IhI2B%2FXNJvjgCSfHST9g24xatc7vb0pqbdc5%2B4X9wAahQRn2a4bqCvlIm7qtAt%2Bx039aCP0XaNaEqv%2FLyDkX6%2F6pMLDfKq0E3N07oKTd5D7af%2BMxZxlO4EiJyo6k3PGAIlpAGwUpuzmDIuxfwWuItu49CQtwak6jaYZJVM1n3PQJS%2Bael6%2FX9dPtOMO48IpZ9onSKV602DZtET%2F8xm8c3l%2FVFpXD6KTl5QSn4yWjTtWpDKT6Q%3D%3D&response-content-disposition=attachment;filename=%22invoice.pdf%22', target, features);
-      //   //     // return og('https://storage.googleapis.com/business-document-uploads-staging/platform-document-uploads/invoices/886048d1-34a2-4e30-99ba-c6c502f8881c-blob?GoogleAccessId=staging-cdn%40aerobic-furnace-316818.iam.gserviceaccount.com&Expires=1744698732&Signature=2Ruc7Z%2FF4CTApNe%2Fbz8iiipVqMVQvrMzkIskFW3JJb7F3CIqzIffeaMF%2BMPmJswsUXfmu4s54atVYTe3ilu1y6blDv6cwlE2E0pI6IhI2B%2FXNJvjgCSfHST9g24xatc7vb0pqbdc5%2B4X9wAahQRn2a4bqCvlIm7qtAt%2Bx039aCP0XaNaEqv%2FLyDkX6%2F6pMLDfKq0E3N07oKTd5D7af%2BMxZxlO4EiJyo6k3PGAIlpAGwUpuzmDIuxfwWuItu49CQtwak6jaYZJVM1n3PQJS%2Bael6%2FX9dPtOMO48IpZ9onSKV602DZtET%2F8xm8c3l%2FVFpXD6KTl5QSn4yWjTtWpDKT6Q%3D%3D&response-content-disposition=attachment', target, features);
-      //   //   };
-
-      //     var blob = new Blob(["hello world"], { type: "text/plain" });
-
-
-      //       function blobToBase64(blob) {
-      //         return new Promise((resolve, _) => {
-      //           const reader = new FileReader();
-      //           reader.onloadend = () => resolve(reader.result);
-      //           reader.readAsDataURL(blob);
-      //         });
-      //       }
-
-
-      //     window.open = function() {
-      //       if (navigator.userAgent.includes('KanmonIOSWebView')) {
-      //         blobToBase64(blob).then(base64 => {
-      //           window.postMessage({ action : "DOWNLOAD_BLOB", filename: "invoice.txt", blob: base64 }, "*");
-      //         });
-      //       }
-      //     }
-      //   """,
-      //   injectionTime: .atDocumentStart,
-      //   forMainFrameOnly: false
-      // )
-      // configuration.userContentController.addUserScript(windowOpenScript)
       
       // Create the WebView with full screen bounds
       let webView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
+
+      // Give the webview a custom user agent so we can identify it
       webView.customUserAgent = "KanmonIOSWebView \(UIDevice.current.systemVersion)"
 
       webView.uiDelegate = self
@@ -210,15 +169,10 @@ extension KanmonModule: WKScriptMessageHandler {
             return
         }
 
-                print("here - filename \(filename)")
-
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-
-        print("here - tempURL \(tempURL)")
 
         do {
             try data.write(to: tempURL)
-            print("after data write")
             // Present share sheet
             let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
             if let viewController = RCTPresentedViewController() {
@@ -226,7 +180,7 @@ extension KanmonModule: WKScriptMessageHandler {
               viewController.present(activityVC, animated: true)
             }
         } catch {
-            print("Failed to write file: \(error)")
+            os_log("Failed to write file: %{public}@", log: self.logger, type: .error, error.localizedDescription)
         }
     }
 
@@ -244,35 +198,31 @@ extension KanmonModule: WKScriptMessageHandler {
         return
       }
 
-      print("here - message.body \(message.body)")
-
-
       // Check for HIDE and MESSAGING_READY actions
       if let dict = message.body as? NSDictionary,
          let action = dict["action"] as? String {
 
-        print("here - action \(action)")
         switch action {
-        case "HIDE":
-          // Dismiss the modal but keep the WebView
-          DispatchQueue.main.async {
-            self.webViewController?.dismiss(animated: true, completion: nil)
-          }
-        case "MESSAGING_READY":
-          isWebViewLoaded = true
-          // Process any queued messages
-          if !messageQueue.isEmpty {
-            messageQueue.forEach { sendMessageToWebView($0) }
-            messageQueue.removeAll()
-          }
-        case "DOWNLOAD_FILE":
-          if let data = dict["data"] as? NSDictionary,
-             let base64Blob = data["base64Blob"] as? String,
-             let fileName = data["fileName"] as? String {
-            downloadFile(fromBase64: base64Blob, filename: fileName)
-          }
-        default:
-          break
+          case "HIDE":
+            // Dismiss the modal but keep the WebView
+            DispatchQueue.main.async {
+              self.webViewController?.dismiss(animated: true, completion: nil)
+            }
+          case "MESSAGING_READY":
+            isWebViewLoaded = true
+            // Process any queued messages
+            if !messageQueue.isEmpty {
+              messageQueue.forEach { sendMessageToWebView($0) }
+              messageQueue.removeAll()
+            }
+          case "DOWNLOAD_FILE":
+            if let data = dict["data"] as? NSDictionary,
+              let base64Blob = data["base64Blob"] as? String,
+              let fileName = data["fileName"] as? String {
+              downloadFile(fromBase64: base64Blob, filename: fileName)
+            }
+          default:
+            break
         }
       }
       
@@ -285,12 +235,12 @@ extension KanmonModule: WKScriptMessageHandler {
           jsonString = String(data: jsonData, encoding: .utf8)
         }
       } catch {
-        print("Error converting message to JSON: \(error)")
+        os_log("Error converting message to JSON: %{public}@", log: self.logger, type: .error, error.localizedDescription)
         return
       }
       
       guard let jsonString = jsonString else {
-        print("Failed to convert message to string")
+        os_log("Failed to convert message to string", log: self.logger, type: .error)
         return
       }
       
@@ -301,39 +251,6 @@ extension KanmonModule: WKScriptMessageHandler {
 }
 
 extension KanmonModule: WKUIDelegate {
-  // func downloadFile(from url: URL, filename: String) {
-  //   let task = URLSession.shared.downloadTask(with: url) { localURL, response, error in
-  //       guard let localURL = localURL else {
-  //           print("Download error: \(String(describing: error))")
-  //           return
-  //       }
-
-  //       let fileManager = FileManager.default
-  //       let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-  //       let destinationURL = documentsURL.appendingPathComponent(filename)
-
-  //       do {
-  //           // Show share sheet on the main thread
-  //           DispatchQueue.main.async {
-  //               let activityViewController = UIActivityViewController(
-  //                   activityItems: [destinationURL],
-  //                   applicationActivities: nil
-  //               )
-                
-  //               // Present the share sheet
-  //               if let viewController = RCTPresentedViewController() {
-  //                   activityViewController.popoverPresentationController?.sourceView = viewController.view
-  //                   viewController.present(activityViewController, animated: true, completion: nil)
-  //               }
-  //           }
-  //       } catch {
-  //           print("File error: \(error)")
-  //       }
-  //     }
-
-  //     task.resume()
-  // }
-
   // Called when Persona requests camera access
   func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
     if type == .camera {
@@ -354,28 +271,6 @@ extension KanmonModule: WKUIDelegate {
     }
 
     DispatchQueue.main.async {
-      // If it's a file download, then download the file
-      // let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-      // if let value = components?.queryItems?.first(where: { $0.name == "response-content-disposition" })?.value {
-      //     // Check if this is an attachment. Note the header above must be passed in.
-      //     guard value.lowercased().contains("attachment") else {
-      //       return
-      //     }
-          
-      //     // Extract filename if present
-      //     let filenameKey = "filename="
-      //     var filename = url.lastPathComponent
-      //     if let filenameMatch = value.range(of: "\(filenameKey)([^;]+)", options: .regularExpression) {
-      //         // Get the filename portion
-      //         filename = String(value[filenameMatch].dropFirst(filenameKey.count))
-      //         // Remove surrounding quotes if present
-      //         filename = filename.trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
-      //     }
-
-      //     self.downloadFile(from: url, filename: filename)
-      //     return
-      // }
-
       let newWebView = WKWebView(frame: UIScreen.main.bounds, configuration: configuration)
       newWebView.uiDelegate = self
       

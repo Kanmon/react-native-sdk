@@ -36,14 +36,8 @@ function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark'
 
   const startKanmon = async (userId: string) => {
+    console.log('userId', userId)
     try {
-      console.log('?????', userId, workflowHostName, environment)
-
-      console.log('ping')
-      await axios.get('https://workflow.concar.dev/api/ping')
-
-      console.log('pong')
-
       const res = await axios.post(
         `${workflowHostName}/api/platform/v2/connect-tokens`,
         {
@@ -56,8 +50,6 @@ function App(): React.JSX.Element {
         },
       )
 
-      console.log('here?')
-
       nativeSdk.start({
         environment: environment as KanmonConnectEnviroment,
         connectToken: res.data.connectToken,
@@ -65,15 +57,11 @@ function App(): React.JSX.Element {
           console.log('got event', event)
         },
         onError: (error: ErrorEvent) => {
-          console.log('error', error)
+          console.error('error', error)
         },
       })
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.log('got axios error', error.code)
-      } else {
-        console.log('error', error)
-      }
+      console.error('error', error)
     }
   }
 
