@@ -10,7 +10,7 @@ class KanmonModule: RCTEventEmitter {
     private var webView: WKWebView?
     private var webViewController: UIViewController?
     private var messageQueue: [String] = []
-       private var isWebViewLoaded: Bool = false
+    private var isWebViewLoaded: Bool = false
 
     override func supportedEvents() -> [String]! {
         ["onWebViewMessage"]
