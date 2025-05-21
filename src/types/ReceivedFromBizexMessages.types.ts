@@ -1,12 +1,9 @@
-import {
-  type Section,
-  ExternalDrawRequestDTO,
-  ExternalInvoiceDTO,
-} from './General.types'
+import { ExternalDrawRequestDTO, ExternalInvoiceDTO } from './General.types'
+import type { UserStateWithActionMessage } from './OnEventCallbackEvent.types'
 
 export enum ReceivedFromKanmonActions {
   HIDE = 'HIDE',
-  WORKFLOW_UPDATED = 'WORKFLOW_UPDATED',
+  WORKFLOW_UPDATED_V2 = 'WORKFLOW_UPDATED_V2',
   ERROR = 'ERROR',
   MESSAGING_READY = 'MESSAGING_READY',
   USER_CONFIRMED_INVOICE = 'USER_CONFIRMED_INVOICE',
@@ -29,10 +26,10 @@ export interface HideMessage extends BaseReceivedFromKanmonMessage {
   action: ReceivedFromKanmonActions.HIDE
 }
 
-export interface WorkflowUpdatedMessage extends BaseReceivedFromKanmonMessage {
-  action: ReceivedFromKanmonActions.WORKFLOW_UPDATED
-  section: Section
-  nextStep: string
+export interface WorkflowUpdatedMessageV2
+  extends BaseReceivedFromKanmonMessage {
+  action: ReceivedFromKanmonActions.WORKFLOW_UPDATED_V2
+  data: UserStateWithActionMessage
 }
 
 export interface ErrorMessage extends BaseReceivedFromKanmonMessage {
@@ -72,7 +69,7 @@ export interface UserConfirmedDrawRequestMessage
 
 export type ReceivedFromKanmonMessage =
   | HideMessage
-  | WorkflowUpdatedMessage
+  | WorkflowUpdatedMessageV2
   | MessagingReadyMessage
   | ErrorMessage
   | UserConfirmedInvoiceMessage
