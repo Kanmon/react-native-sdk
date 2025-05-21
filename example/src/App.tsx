@@ -20,7 +20,7 @@ import nativeSdk, {
   type OnEventCallbackEvent,
 } from '../../src/index'
 
-const workflowHostName = 'https://workflow.concar.dev'
+const workflowHostName = process.env.WORKFLOW_HOST_NAME
 
 // Sub in your test user IDs here
 const testUserId1 = process.env.TEST_USER_ID_1 as string
@@ -29,6 +29,8 @@ const testUserId2 = process.env.TEST_USER_ID_2 as string
 
 // For the sake of testing. Do not do this in production.
 const apiKey = process.env.KANMON_API_KEY
+
+const environment = process.env.ENVIRONMENT
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark'
@@ -48,20 +50,17 @@ function App(): React.JSX.Element {
       )
 
       nativeSdk.start({
-        environment: process.env.ENVIRONMENT as KanmonConnectEnviroment,
+        environment: environment as KanmonConnectEnviroment,
         connectToken: res.data.connectToken,
         onEvent: (event: OnEventCallbackEvent) => {
           console.log('got event', event)
         },
         onError: (error: ErrorEvent) => {
-          console.log('error', error)
+          console.error('error', error)
         },
       })
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.log('got axios error', error.message)
-      }
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
