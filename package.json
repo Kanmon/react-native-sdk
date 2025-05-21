@@ -36,6 +36,7 @@
     "typecheck": "tsc",
     "kotlin-lint-check": "./android/gradlew -p android ktfmtCheck",
     "kotlin-lint-format": "./android/gradlew -p android ktfmtFormat",
+    "swift-format": "swiftformat .",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
