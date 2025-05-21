@@ -134,8 +134,6 @@ const nativeSdk = {
       (message) => {
         const data: ReceivedFromKanmonMessage = JSON.parse(message)
 
-        console.log('DATA', data)
-
         switch (data.action) {
           case ReceivedFromKanmonActions.HIDE:
             params.onEvent?.({
