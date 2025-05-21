@@ -29,6 +29,13 @@ jobs:
       - name: Lint Kotlin files
         run: yarn kotlin-lint-check
 
+  lint-swift:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: SwiftFormat
+        run: swiftformat --lint . --reporter github-actions-log
+
   build-library:
     runs-on: ubuntu-latest
     steps:
