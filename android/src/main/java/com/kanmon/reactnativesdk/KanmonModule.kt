@@ -20,6 +20,12 @@ import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.PermissionAwareActivity
 import com.facebook.react.modules.core.PermissionListener
+import android.app.DownloadManager
+import android.content.Context
+import android.os.Environment
+import android.webkit.CookieManager
+import android.webkit.URLUtil
+import android.widget.Toast
 
 class KanmonModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext), ActivityEventListener, PermissionListener {
@@ -341,7 +347,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
       webView?.loadUrl(url)
     }
 
-    //                  WebView.setWebContentsDebuggingEnabled(true)
+                      WebView.setWebContentsDebuggingEnabled(true)
 
     return webView!!
   }
