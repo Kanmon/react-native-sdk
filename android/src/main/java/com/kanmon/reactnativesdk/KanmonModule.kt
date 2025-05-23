@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Message
+import android.util.Base64
 import android.util.Log
 import android.view.ViewGroup
 import android.view.Window
@@ -17,15 +18,16 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
-import com.facebook.react.bridge.*
+import androidx.core.content.FileProvider
+import com.facebook.react.bridge.ActivityEventListener
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.modules.core.PermissionAwareActivity
 import com.facebook.react.modules.core.PermissionListener
-import android.app.DownloadManager
-import android.content.Context
-import android.os.Environment
-import android.webkit.CookieManager
-import android.webkit.URLUtil
-import android.widget.Toast
+import java.io.File
+import java.io.FileOutputStream
 
 class KanmonModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext), ActivityEventListener, PermissionListener {
@@ -318,7 +320,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
 
             // This adds a field called "ReactNative" to the window object in the WebView.
             addJavascriptInterface(
-                WebViewJSInterface(reactContext) { message ->
+                WebViewJSInterface(onMessage = { message ->
                   try {
                     val jsonObject = org.json.JSONObject(message)
                     val action = jsonObject.getString("action")
@@ -336,10 +338,39 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                         }
                       }
                     }
+
+                    // Emit message from native WebView to React Native
+                    reactContext
+                      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                      .emit("onWebViewMessage", message)
                   } catch (e: Exception) {
                     Log.e("KanmonModule", "Failed to parse message as JSON: $message")
                   }
-                },
+                }, handleDownload = {base64DataUrl: String, fileName: String ->
+                  try {
+                    // Remove the "data:*/*;base64," prefix
+                    val base64Part = base64DataUrl.substringAfter(",")
+
+                    // Decode base64 to bytes
+                    val fileBytes = Base64.decode(base64Part, Base64.DEFAULT)
+
+                    val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
+                    if (!downloadsDir.exists()) downloadsDir.mkdirs()
+                    val file = File(downloadsDir, fileName)
+                    FileOutputStream(file).use { it.write(fileBytes) }
+
+                    // Make file visible to media scanner (optional)
+                    reactContext.sendBroadcast(
+                      Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file))
+                    )
+
+                    // Show a toast to the user
+                    android.widget.Toast.makeText(reactContext, "File saved to Downloads: $fileName", android.widget.Toast.LENGTH_LONG).show()
+
+                  } catch (e: Exception) {
+                    Log.e("Base64Save", "Error saving base64 file", e)
+                  }
+                }),
                 "ReactNative")
           }
 
