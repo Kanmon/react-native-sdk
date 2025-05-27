@@ -7,8 +7,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Message
-import android.util.Base64
 import android.provider.MediaStore
+import android.util.Base64
 import android.util.Log
 import android.view.ViewGroup
 import android.view.Window
@@ -360,60 +360,64 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                         val fileBytes = Base64.decode(base64Part, Base64.DEFAULT)
 
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                            // Android 10+ (API 29+): Use MediaStore
-                            val resolver = reactContext.contentResolver
-                            val contentValues = android.content.ContentValues().apply {
+                          // Android 10+ (API 29+): Use MediaStore
+                          val resolver = reactContext.contentResolver
+                          val contentValues =
+                              android.content.ContentValues().apply {
                                 put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                                put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream") // or your MIME type
+                                put(
+                                    MediaStore.Downloads.MIME_TYPE,
+                                    "application/octet-stream") // or your MIME type
                                 put(MediaStore.Downloads.IS_PENDING, 1)
+                              }
+                          val collection =
+                              MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                          val fileUri = resolver.insert(collection, contentValues)
+                          if (fileUri != null) {
+                            resolver.openOutputStream(fileUri).use { outputStream: OutputStream? ->
+                              outputStream?.write(fileBytes)
                             }
-                            val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-                            val fileUri = resolver.insert(collection, contentValues)
-                            if (fileUri != null) {
-                                resolver.openOutputStream(fileUri).use { outputStream: OutputStream? ->
-                                    outputStream?.write(fileBytes)
-                                }
-                                contentValues.clear()
-                                contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
-                                resolver.update(fileUri, contentValues, null, null)
-                                android.widget.Toast.makeText(
+                            contentValues.clear()
+                            contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
+                            resolver.update(fileUri, contentValues, null, null)
+                            android.widget.Toast.makeText(
                                     reactContext,
                                     "File saved to Downloads: $fileName",
-                                    android.widget.Toast.LENGTH_LONG
-                                ).show()
-                            } else {
-                                android.widget.Toast.makeText(
+                                    android.widget.Toast.LENGTH_LONG)
+                                .show()
+                          } else {
+                            android.widget.Toast.makeText(
                                     reactContext,
                                     "Failed to save file: could not create file entry",
-                                    android.widget.Toast.LENGTH_LONG
-                                ).show()
-                            }
+                                    android.widget.Toast.LENGTH_LONG)
+                                .show()
+                          }
                         } else {
-                            // Android 9 and below: Use legacy file approach
-                            val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
-                                android.os.Environment.DIRECTORY_DOWNLOADS)
-                            if (!downloadsDir.exists()) downloadsDir.mkdirs()
-                            val file = File(downloadsDir, fileName)
-                            FileOutputStream(file).use { it.write(fileBytes) }
+                          // Android 9 and below: Use legacy file approach
+                          val downloadsDir =
+                              android.os.Environment.getExternalStoragePublicDirectory(
+                                  android.os.Environment.DIRECTORY_DOWNLOADS)
+                          if (!downloadsDir.exists()) downloadsDir.mkdirs()
+                          val file = File(downloadsDir, fileName)
+                          FileOutputStream(file).use { it.write(fileBytes) }
 
-                            // Make file visible to media scanner (optional)
-                            reactContext.sendBroadcast(
-                                Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file))
-                            )
+                          // Make file visible to media scanner (optional)
+                          reactContext.sendBroadcast(
+                              Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
 
-                            android.widget.Toast.makeText(
-                                reactContext,
-                                "File saved to Downloads: $fileName",
-                                android.widget.Toast.LENGTH_LONG
-                            ).show()
+                          android.widget.Toast.makeText(
+                                  reactContext,
+                                  "File saved to Downloads: $fileName",
+                                  android.widget.Toast.LENGTH_LONG)
+                              .show()
                         }
                       } catch (e: Exception) {
                         Log.e("Base64Save", "Error saving base64 file", e)
                         android.widget.Toast.makeText(
-                            reactContext,
-                            "Failed to save file: ${e.message}",
-                            android.widget.Toast.LENGTH_LONG
-                        ).show()
+                                reactContext,
+                                "Failed to save file: ${e.message}",
+                                android.widget.Toast.LENGTH_LONG)
+                            .show()
                       }
                     }),
                 "ReactNative")
