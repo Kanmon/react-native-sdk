@@ -14,7 +14,7 @@ npm install @kanmon/react-native-sdk
 cd ios && bundle install && bundle exec pod install
 ```
 
-There are cases where Kanmon will collect ID Verification from the user. It will need access to the camera for this. The following will need to be added to `Info.plist` for this to work.
+Kanmon requires access to the camera for ID Verification. The following will need to be added to `Info.plist` for this to work. Permission will be requested from the user when they see the ID Verification Step.
 
 ```
 	<key>NSCameraUsageDescription</key>
@@ -24,3 +24,5 @@ There are cases where Kanmon will collect ID Verification from the user. It will
 ## Android Setup
 
 Autolinking should automatically detect the new dependency.
+
+Kanmon requires access to the camera for ID Verification. This is declared in the AndroidManifest.xml. Permission will be requested from the user when they see the ID Verification Step.
