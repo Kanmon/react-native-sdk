@@ -37,7 +37,6 @@ function App(): React.JSX.Element {
 
   const startKanmon = async (userId: string) => {
     try {
-      console.log('workflowHostNamee', workflowHostName)
       const res = await axios.post(
         `${workflowHostName}/api/platform/v2/connect-tokens`,
         {
@@ -49,8 +48,6 @@ function App(): React.JSX.Element {
           },
         },
       )
-
-      console.log('res', res.data)
 
       nativeSdk.start({
         environment: environment as KanmonConnectEnviroment,

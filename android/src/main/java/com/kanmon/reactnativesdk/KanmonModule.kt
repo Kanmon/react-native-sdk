@@ -187,6 +187,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
               allowFileAccess = true
               allowContentAccess = true
               mediaPlaybackRequiresUserGesture = false
+              userAgentString = "KanmonAndroidWebView $userAgentString"
             }
 
             webChromeClient =
@@ -378,7 +379,7 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
       webView?.loadUrl(url)
     }
 
-                      WebView.setWebContentsDebuggingEnabled(true)
+    // WebView.setWebContentsDebuggingEnabled(true)
 
     return webView!!
   }
