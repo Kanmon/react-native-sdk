@@ -109,7 +109,7 @@ const nativeSdk = {
       [KanmonConnectEnviroment.sandbox]: 'https://connect.kanmon.dev',
       staging: 'https://connect.concar.dev',
       // This needs to be 10.0.2.2 for Android emulator
-      development: 'http://10.0.2.2:4200',
+      development: 'http://localhost:4200',
     }
 
     const baseUrl =
