@@ -360,7 +360,6 @@ class KanmonModule(private val reactContext: ReactApplicationContext) :
                         val fileBytes = Base64.decode(base64Part, Base64.DEFAULT)
 
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                          println("android.os.Build.VERSION.SDK_INT ${android.os.Build.VERSION.SDK_INT}")
                             // Android 10+ (API 29+): Use MediaStore
                             val resolver = reactContext.contentResolver
                             val contentValues = android.content.ContentValues().apply {
