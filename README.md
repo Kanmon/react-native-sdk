@@ -1,6 +1,6 @@
 # @kanmon/react-native-sdk
 
-Kanmon React Native SDK
+This provides a simple way to embed Kanmon in a React Native application.
 
 ## Installation
 
