@@ -30,3 +30,7 @@ Kanmon requires access to the camera for ID Verification. This is declared in th
 ## Example
 
 Check out the [example](https://github.com/Kanmon/react-native-sdk/blob/main/example/src/App.tsx) integration.
+
+## Additional Documentation
+
+Check out our [documentation](https://kanmon.dev/docs/types) for additional information on the types.
