@@ -18,7 +18,7 @@ import nativeSdk, {
   KanmonConnectEnviroment,
   type ErrorEvent,
   type OnEventCallbackEvent,
-} from '../../src/index'
+} from '@kanmon/react-native-sdk'
 
 const workflowHostName = process.env.WORKFLOW_HOST_NAME
 
