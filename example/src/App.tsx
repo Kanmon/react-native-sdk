@@ -13,7 +13,8 @@ import {
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 
 import axios from 'axios'
-import nativeSdk, {
+import {
+  KANMON_CONNECT,
   KanmonConnectComponent,
   KanmonConnectEnviroment,
   type ErrorEvent,
@@ -49,7 +50,7 @@ function App(): React.JSX.Element {
         },
       )
 
-      nativeSdk.start({
+      KANMON_CONNECT.start({
         environment: environment as KanmonConnectEnviroment,
         connectToken: res.data.connectToken,
         onEvent: (event: OnEventCallbackEvent) => {
@@ -91,13 +92,13 @@ function App(): React.JSX.Element {
             <Text style={styles.headerText}>Kanmon SDK Example</Text>
           </View>
           <View style={styles.buttonContainer}>
-            <Button title="Open Kanmon" onPress={() => nativeSdk.show()} />
+            <Button title="Open Kanmon" onPress={() => KANMON_CONNECT.show()} />
           </View>
           <View style={styles.buttonContainer}>
             <Button
               title="Open Legal Docs"
               onPress={() =>
-                nativeSdk.show({
+                KANMON_CONNECT.show({
                   component: KanmonConnectComponent.DOWNLOAD_AGREEMENTS,
                 })
               }
@@ -116,7 +117,7 @@ function App(): React.JSX.Element {
             />
           </View>
           <View style={styles.buttonContainer}>
-            <Button title="Stop" onPress={() => nativeSdk.stop()} />
+            <Button title="Stop" onPress={() => KANMON_CONNECT.stop()} />
           </View>
         </View>
       </ScrollView>

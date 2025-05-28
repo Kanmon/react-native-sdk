@@ -100,7 +100,7 @@ interface ShowArgs {
   sessionToken?: string
 }
 
-const nativeSdk = {
+export const KANMON_CONNECT = {
   start(params: KanmonConnectParams) {
     validateParams(params)
 
@@ -189,5 +189,3 @@ const nativeSdk = {
     subscription?.remove()
   },
 }
-
-export default nativeSdk
