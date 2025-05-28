@@ -1,6 +1,6 @@
 # @kanmon/react-native-sdk
 
-Kanmon React Native SDK
+This provides a simple way to embed Kanmon in a React Native application.
 
 ## Installation
 
@@ -26,3 +26,11 @@ Kanmon requires access to the camera for ID Verification. The following will nee
 Autolinking should automatically detect the new dependency.
 
 Kanmon requires access to the camera for ID Verification. This is declared in the AndroidManifest.xml. Permission will be requested from the user when they see the ID Verification Step.
+
+## Example
+
+Check out the [example](https://github.com/Kanmon/react-native-sdk/blob/main/example/src/App.tsx) integration.
+
+## Additional Documentation
+
+Check out our [documentation](https://kanmon.dev/docs/types) for additional information on the types.
