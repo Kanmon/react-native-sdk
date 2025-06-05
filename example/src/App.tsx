@@ -112,17 +112,6 @@ function App(): React.JSX.Element {
           </View>
           <View style={styles.buttonContainer}>
             <Button
-              title="pay now"
-              onPress={() =>
-                KANMON_CONNECT.show({
-                  component: KanmonConnectComponent.PAY_NOW,
-                  invoiceId: '74f52ed5-f7f7-490a-9174-bebc9440d7bb',
-                })
-              }
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
               title="Start Kanmon with User 2"
               onPress={() => startKanmon(testUserId2)}
             />
