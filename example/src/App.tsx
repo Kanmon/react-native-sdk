@@ -37,7 +37,6 @@ function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark'
 
   const startKanmon = async (userId: string) => {
-    console.log('env', environment)
     try {
       const res = await axios.post(
         `${workflowHostName}/api/platform/v2/connect-tokens`,
