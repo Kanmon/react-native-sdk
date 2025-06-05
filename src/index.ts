@@ -8,6 +8,7 @@ import {
 import {
   SentToKanmonConnectActions,
   type SentToKanmonConnectMessage,
+  type ShowKanmonConnectMessage,
 } from './types/SentToKanmonConnectMessage.types'
 import {
   ExternalProductType,
@@ -28,7 +29,9 @@ const validateParams = ({ connectToken }: KanmonConnectParams) => {
   }
 }
 
-const validateShowArgs = (showArgs: ShowArgs) => {
+function validateShowArgs(
+  showArgs: ShowArgs,
+): asserts showArgs is ShowKanmonConnectMessage {
   const { component, sessionToken } = showArgs
   const allComponents = Object.values(KanmonConnectComponent)
   if (component && !allComponents.includes(component)) {
@@ -173,7 +176,7 @@ export const KANMON_CONNECT = {
     )
   },
 
-  show(showArgs: ShowArgs = {}) {
+  show(showArgs: ShowKanmonConnectMessage = {}) {
     validateShowArgs(showArgs)
 
     const args: SentToKanmonConnectMessage = {
