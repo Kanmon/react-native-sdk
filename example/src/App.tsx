@@ -37,6 +37,7 @@ function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark'
 
   const startKanmon = async (userId: string) => {
+    console.log('env', environment)
     try {
       const res = await axios.post(
         `${workflowHostName}/api/platform/v2/connect-tokens`,
@@ -108,6 +109,17 @@ function App(): React.JSX.Element {
             <Button
               title="Start Kanmon with User 1"
               onPress={() => startKanmon(testUserId1)}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="pay now"
+              onPress={() =>
+                KANMON_CONNECT.show({
+                  component: KanmonConnectComponent.PAY_NOW,
+                  invoiceId: '74f52ed5-f7f7-490a-9174-bebc9440d7bb',
+                })
+              }
             />
           </View>
           <View style={styles.buttonContainer}>
