@@ -1,6 +1,6 @@
 {
   "name": "@kanmon/react-native-sdk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Kanmon React Native SDK",
   "source": "./src/index.ts",
   "main": "./lib/commonjs/index.js",
